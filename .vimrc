@@ -7,10 +7,6 @@ if &runtimepath !~# '/dein.vim'
   execute 'set runtimepath^=' . fnamemodify(s:dein_repo_dir, ':p')
 endif
 
-syntax on
-set background=dark
-colorscheme hybrid
-
 set runtimepath+=~/.vim/dein/repos/github.com/Shougo/dein.vim
 call dein#begin(expand('~/.vim/dein'))
 call dein#add('Shougo/dein.vim')
@@ -41,6 +37,14 @@ call dein#add('Shougo/neocomplete.vim')
 call dein#add('Shougo/neosnippet')
 call dein#add('Shougo/neosnippet-snippets')
 call dein#end()
+
+" colorscheme
+syntax on
+set background=dark
+let g:hybrid_custom_term_colors = 0
+let g:hybrid_reduced_contrast = 0
+colorscheme hybrid
+"-------------------------------------
 
 if dein#check_install()
   call dein#install()

@@ -7,5 +7,7 @@ brew reinstall vim --with-luajit
 
 #### check lua
 ```
+which vim
 vim --version | grep lua
 ```
+
