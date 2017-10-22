@@ -36,6 +36,9 @@ call dein#add('Shougo/neomru.vim')
 call dein#add('Shougo/neocomplete.vim')
 call dein#add('Shougo/neosnippet')
 call dein#add('Shougo/neosnippet-snippets')
+call dein#add('othree/html5.vim')
+call dein#add('hail2u/vim-css3-syntax')
+call dein#add('osyo-manga/vim-over')
 call dein#end()
 
 " colorscheme
@@ -121,6 +124,14 @@ nmap <silent> ,l :BufExplorer<CR>
 nmap <silent> .; :Unite file_mru<CR>
 au FileType unite nnoremap <silent> <buffer> <expr> <C-i> unite#do_action('split')
 au FileType unite inoremap <silent> <buffer> <expr> <C-i> unite#do_action('split')
+
+" ---------- 'osyo-manga/vim-over' ----------
+" 全体置換
+nnoremap <silent> <Space>o :OverCommandLine<CR>%s//g<Left><Left>
+" 選択範囲置換
+vnoremap <silent> <Space>o :OverCommandLine<CR>s//g<Left><Left>
+" カーソルしたの単語置換
+nnoremap sub :OverCommandLine<CR>%s/<C-r><C-w>//g<Left><Left>
 
 " neocomplete
 "--------------------------------------------
