@@ -1,14 +1,17 @@
 # Created by newuser for 5.0.5
-export LANG=ja_JP.UTF-8
+export LANGUAGE="ja_JP.UTF-8"
+export LANG="${LANGUAGE}"
+export LC_ALL="${LANGUAGE}"
+export GIT_EDITOR=vim
 ZSH_THEME="dpoggi"
+export ZSH=~/.oh-my-zsh
+plugins=(git tmux)
+source $ZSH/oh-my-zsh.sh
 
 # Color
 export LSCOLORS=Exfxcxdxbxegedabagacad
 export ZLS_COLORS=$LS_COLORS
 export CLICOLOR=true
-
-# Prompt
-PROMPT='%(?,%F{green},%F{red})[%n %~]%#%f '
 
 # History
 HISTFILE=$HOME/.zsh_history
@@ -31,21 +34,6 @@ alias history="history -i 1"
 alias gti="git"
 
 DIRSTACKSIZE=100
-
-# PROMPT
-
-# RPROMT
-zstyle ':vcs_info:*' enable git
-zstyle ':vcs_info:git:*' check-for-changes true
-zstyle ':vcs_info:git:*' formats '[%b]%u%c'
-zstyle ':vcs_info:git:*' stagedstr '+'
-zstyle ':vcs_info:git:*' unstagedstr '-'
-precmd () {
-  psvar=()
-  LANG=en_US.UTF-8 vcs_info
-  [[ -n "$vcs_info_msg_0_" ]] && psvar[1]="$vcs_info_msg_0_"
-}
-RPROMPT='%1(v|%F{yellow}%1v%f|)'
 
 setopt auto_menu
 setopt auto_cd
@@ -71,7 +59,7 @@ export PATH=/usr/local/bin:$PATH
 fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
 
 # Ruby
-if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+# if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # Node
 export PATH=$HOME/.nodebrew/current/bin:$PATH
