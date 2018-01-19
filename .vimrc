@@ -11,34 +11,21 @@ set runtimepath+=~/.vim/dein/repos/github.com/Shougo/dein.vim
 call dein#begin(expand('~/.vim/dein'))
 call dein#add('Shougo/dein.vim')
 call dein#add('kchmck/vim-coffee-script')
-call dein#add('vim-scripts/ruby-matchit')
-call dein#add('tpope/vim-endwise')
-call dein#add('jpo/vim-railscasts-theme')
 call dein#add('pangloss/vim-javascript')
-call dein#add('itchyny/lightline.vim')
-call dein#add('bronson/vim-trailing-whitespace')
 call dein#add('mxw/vim-jsx')
+" call dein#add('w0ng/vim-hybrid')
+" call dein#add('junegunn/vim-easy-align')
+" call dein#add('othree/html5.vim')
+" call dein#add('hail2u/vim-css3-syntax')
+"----------------------------------------
+call dein#add('ervandew/supertab')
 call dein#add('jlanzarotta/bufexplorer')
-call dein#add('vim-scripts/AnsiEsc.vim')
-call dein#add('szw/vim-tags')
 call dein#add('tomtom/tcomment_vim')
-call dein#add('vim-scripts/AnsiEsc.vim')
-call dein#add('w0rp/ale')
+call dein#add('itchyny/lightline.vim')
 call dein#add('kshenoy/vim-signature')
 call dein#add('kana/vim-smartword')
-call dein#add('leafgarland/typescript-vim')
-call dein#add('junegunn/vim-easy-align')
-call dein#add('jiangmiao/auto-pairs')
-call dein#add('w0ng/vim-hybrid')
-call dein#add('tomtom/tcomment_vim')
-call dein#add('Shougo/unite.vim')
-call dein#add('Shougo/neomru.vim')
-call dein#add('Shougo/neocomplete.vim')
-call dein#add('Shougo/neosnippet')
-call dein#add('Shougo/neosnippet-snippets')
-call dein#add('othree/html5.vim')
-call dein#add('hail2u/vim-css3-syntax')
 call dein#add('osyo-manga/vim-over')
+" call dein#add('w0rp/ale')
 call dein#end()
 
 " colorscheme
@@ -74,13 +61,16 @@ set shiftwidth=2
 set softtabstop=0
 set hlsearch
 set nu
+set noswapfile
+set nobackup
+set autoread
+set hidden
 
 " ignore hjkl
 noremap h <nop>
 noremap j <nop>
 noremap k <nop>
 noremap l <nop>
-
 " set WASD
 noremap <S-a>   <left>
 noremap <S-a>   <left>
@@ -91,6 +81,10 @@ inoremap <silent> jj <ESC>
 noremap <S-e>   $
 noremap <S-q>   0
 nnoremap == gg=G''
+" ctags
+let g:vim_tags_project_tags_command = "/usr/local/bin/ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
+let g:vim_tags_gems_tags_command = "/usr/local/bin/ctags -R {OPTIONS} `bundle show --paths` 2>/dev/null"
+nnoremap <C-]> g<C-]>
 
 " close tag
 augroup MyXML
@@ -103,22 +97,14 @@ augroup MyXML
   autocmd Filetype coffee inoremap <buffer> </ </<C-x><C-o>
 augroup END
 
-" ctags
-let g:vim_tags_project_tags_command = "/usr/local/bin/ctags -R {OPTIONS} {DIRECTORY} 2>/dev/null"
-let g:vim_tags_gems_tags_command = "/usr/local/bin/ctags -R {OPTIONS} `bundle show --paths` 2>/dev/null"
-nnoremap <C-]> g<C-]>
-
-" ruby
-autocmd FileType ruby setlocal sw=2 sts=0 ts=2 et
-
-" javascript
-autocmd BufNewFile,BufRead *.es6 setfiletype javascript
-
+" php
+autocmd FileType php setlocal sw=4 sts=0 ts=4 noet
+" Sass
+autocmd FileType scss setlocal sw=4 sts=0 ts=4 noet
 " smartword
 nmap w   <Plug>(smartword-w)
 nmap b   <Plug>(smartword-b)
 nmap e   <Plug>(smartword-e)
-
 " unite.vim
 nmap <silent> ,l :BufExplorer<CR>
 nmap <silent> .; :Unite file_mru<CR>
@@ -132,76 +118,3 @@ nnoremap <silent> <Space>o :OverCommandLine<CR>%s//g<Left><Left>
 vnoremap <silent> <Space>o :OverCommandLine<CR>s//g<Left><Left>
 " カーソルしたの単語置換
 nnoremap sub :OverCommandLine<CR>%s/<C-r><C-w>//g<Left><Left>
-
-" neocomplete
-"--------------------------------------------
-" Disable AutoComplPop.
-let g:acp_enableAtStartup = 0
-" Use neocomplete.
-let g:neocomplete#enable_at_startup = 1
-" Use smartcase.
-let g:neocomplete#enable_smart_case = 1
-" Set minimum syntax keyword length.
-let g:neocomplete#sources#syntax#min_keyword_length = 3
-
-" Define dictionary.
-let g:neocomplete#sources#dictionary#dictionaries = {
-    \ 'default' : '',
-    \ 'vimshell' : $HOME.'/.vimshell_hist',
-    \ 'scheme' : $HOME.'/.gosh_completions'
-        \ }
-
-" Define keyword.
-if !exists('g:neocomplete#keyword_patterns')
-    let g:neocomplete#keyword_patterns = {}
-endif
-let g:neocomplete#keyword_patterns['default'] = '\h\w*'
-
-" Plugin key-mappings.
-inoremap <expr><C-g>     neocomplete#undo_completion()
-inoremap <expr><C-l>     neocomplete#complete_common_string()
-
-" Recommended key-mappings.
-" <CR>: close popup and save indent.
-inoremap <silent> <CR> <C-r>=<SID>my_cr_function()<CR>
-function! s:my_cr_function()
-  return (pumvisible() ? "\<C-y>" : "" ) . "\<CR>"
-  " For no inserting <CR> key.
-  "return pumvisible() ? "\<C-y>" : "\<CR>"
-endfunction
-" <TAB>: completion.
-inoremap <expr><TAB>  pumvisible() ? "\<C-n>" : "\<TAB>"
-" <C-h>, <BS>: close popup and delete backword char.
-inoremap <expr><C-h> neocomplete#smart_close_popup()."\<C-h>"
-inoremap <expr><BS> neocomplete#smart_close_popup()."\<C-h>"
-" Close popup by <Space>.
-"inoremap <expr><Space> pumvisible() ? "\<C-y>" : "\<Space>"
-
-" AutoComplPop like behavior.
-"let g:neocomplete#enable_auto_select = 1
-
-" Shell like behavior(not recommended).
-"set completeopt+=longest
-"let g:neocomplete#enable_auto_select = 1
-"let g:neocomplete#disable_auto_complete = 1
-"inoremap <expr><TAB>  pumvisible() ? "\<Down>" : "\<C-x>\<C-u>"
-
-" Enable omni completion.
-autocmd FileType css setlocal omnifunc=csscomplete#CompleteCSS
-autocmd FileType html,markdown setlocal omnifunc=htmlcomplete#CompleteTags
-autocmd FileType javascript setlocal omnifunc=javascriptcomplete#CompleteJS
-autocmd FileType python setlocal omnifunc=pythoncomplete#Complete
-autocmd FileType xml setlocal omnifunc=xmlcomplete#CompleteTags
-
-" Enable heavy omni completion.
-if !exists('g:neocomplete#sources#omni#input_patterns')
-  let g:neocomplete#sources#omni#input_patterns = {}
-endif
-"let g:neocomplete#sources#omni#input_patterns.php = '[^. \t]->\h\w*\|\h\w*::'
-"let g:neocomplete#sources#omni#input_patterns.c = '[^.[:digit:] *\t]\%(\.\|->\)'
-"let g:neocomplete#sources#omni#input_patterns.cpp = '[^.[:digit:] *\t]\%(\.\|->\)\|\h\w*::'
-
-" For perlomni.vim setting.
-" https://github.com/c9s/perlomni.vim
-let g:neocomplete#sources#omni#input_patterns.perl = '\h\w*->\h\w*\|\h\w*::'
-"---------------------------------------------------

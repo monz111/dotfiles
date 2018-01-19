@@ -1,5 +1,6 @@
 # Created by newuser for 5.0.5
 export LANG=ja_JP.UTF-8
+ZSH_THEME="dpoggi"
 
 # Color
 export LSCOLORS=Exfxcxdxbxegedabagacad
