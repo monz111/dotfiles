@@ -25,6 +25,7 @@ call dein#add('itchyny/lightline.vim')
 call dein#add('kshenoy/vim-signature')
 call dein#add('kana/vim-smartword')
 call dein#add('osyo-manga/vim-over')
+call dein#add('tpope/vim-fugitive')
 " call dein#add('w0rp/ale')
 call dein#end()
 
@@ -33,6 +34,8 @@ syntax on
 set background=dark
 let g:hybrid_custom_term_colors = 0
 let g:hybrid_reduced_contrast = 0
+autocmd Colorscheme * highlight FullWidthSpace ctermbg=white
+autocmd VimEnter * match FullWidthSpace /　/
 colorscheme hybrid
 "-------------------------------------
 
@@ -65,6 +68,7 @@ set noswapfile
 set nobackup
 set autoread
 set hidden
+set clipboard=unnamed,autoselect
 
 " ignore hjkl
 noremap h <nop>
@@ -95,6 +99,12 @@ augroup MyXML
   autocmd Filetype js inoremap <buffer> </ </<C-x><C-o>
   autocmd Filetype ts inoremap <buffer> </ </<C-x><C-o>
   autocmd Filetype coffee inoremap <buffer> </ </<C-x><C-o>
+augroup END
+" 全角スペースハイライト
+augroup HighlightTrailingSpaces
+  autocmd!
+  autocmd VimEnter,WinEnter,ColorScheme * highlight TrailingSpaces term=underline guibg=Red ctermbg=Red
+  autocmd VimEnter,WinEnter * match TrailingSpaces /\s\+$/
 augroup END
 
 " php
