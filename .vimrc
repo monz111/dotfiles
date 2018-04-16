@@ -26,6 +26,7 @@ call dein#add('kshenoy/vim-signature')
 call dein#add('kana/vim-smartword')
 call dein#add('osyo-manga/vim-over')
 call dein#add('tpope/vim-fugitive')
+call dein#add('airblade/vim-gitgutter')
 " call dein#add('w0rp/ale')
 call dein#end()
 
