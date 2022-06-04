@@ -1,12 +1,15 @@
-# Created by newuser for 5.0.5
 export LANGUAGE="ja_JP.UTF-8"
 export LANG="${LANGUAGE}"
 export LC_ALL="${LANGUAGE}"
-export GIT_EDITOR=vim
-ZSH_THEME="dpoggi"
+export GIT_EDITOR=nvim
 export ZSH=~/.oh-my-zsh
-plugins=(git tmux)
 source $ZSH/oh-my-zsh.sh
+
+ZSH_THEME="wezm"
+
+plugins=(git tmux zsh-syntax-highlighting zsh-completions wakatime zsh-autosuggestions)
+
+autoload -U compinit && compinit -u
 
 # Color
 export LSCOLORS=Exfxcxdxbxegedabagacad
@@ -17,23 +20,10 @@ export CLICOLOR=true
 HISTFILE=$HOME/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
+DIRSTACKSIZE=100
 
 autoload -U compinit vcs_info
 compinit -u
-
-alias vi=vim
-alias ll="ls -l"
-alias la="ls -la"
-alias rm="rm -i"
-alias mv="mv -i"
-alias cp="cp -i"
-alias j="jobs"
-alias f="fg"
-alias .="source"
-alias history="history -i 1"
-alias gti="git"
-
-DIRSTACKSIZE=100
 
 setopt auto_menu
 setopt auto_cd
@@ -57,9 +47,6 @@ export PATH=/usr/local/bin:$PATH
 
 # Git
 fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
-
-# Ruby
-# if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 # Node
 export PATH=$HOME/.nodebrew/current/bin:$PATH
