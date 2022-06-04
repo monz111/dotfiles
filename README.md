@@ -1,13 +1,4 @@
-# start up
-
-#### install vim+lua for macOS
 ```
-brew reinstall vim --with-luajit
+git clone git@github.com:monz111/dotfiles ~/dotfiles
+sh ln.sh
 ```
-
-#### check lua
-```
-which vim
-vim --version | grep lua
-```
-
