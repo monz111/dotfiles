@@ -24,7 +24,6 @@ set encoding=utf8
 set fenc=utf8
 set wrap
 set tabstop=2
-set expandtab
 set shiftwidth=2
 set softtabstop=2
 set hlsearch
@@ -61,11 +60,12 @@ set wildignore+=*/tmp/*,*.so,*.swp,*.zip,*.pyc,*.db,*.sqlite
 set shortmess+=c
 set completeopt=menuone,noinsert,noselect,preview
 set ambiwidth=double
+set expandtab
 
 if has('nvim')
   set clipboard+=unnamedplus
   set guicursor=a:blinkon0
 else
   set guicursor=i:blinkwait700-blinkon400-blinkoff250
-	set clipboard+=unnamed,autoselect
+  set clipboard+=unnamed,autoselect
 endif

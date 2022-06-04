@@ -16,10 +16,10 @@ Plug 'Raimondi/delimitMate'
 Plug 'simeji/winresizer'
 Plug 'AndrewRadev/tagalong.vim'
 if has('nvim')
-	Plug 'rebelot/kanagawa.nvim'
-	Plug 'echasnovski/mini.nvim', { 'branch': 'stable' }
-	Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
-	Plug 'yuki-yano/fzf-preview.vim', { 'branch': 'release/rpc' }
-	Plug 'phaazon/hop.nvim'
+  Plug 'rebelot/kanagawa.nvim'
+  Plug 'echasnovski/mini.nvim', { 'branch': 'stable' }
+  Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
+  Plug 'yuki-yano/fzf-preview.vim', { 'branch': 'release/rpc' }
+  Plug 'phaazon/hop.nvim'
 endif
 call plug#end()

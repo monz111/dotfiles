@@ -1,8 +1,8 @@
 command Sov so ~/.vimrc
 
 if has('nvim')
-	command! -nargs=* T split | wincmd j | resize 5 | terminal <args>
-	autocmd TermOpen * startinsert
+  command! -nargs=* T split | wincmd j | resize 5 | terminal <args>
+  autocmd TermOpen * startinsert
 endif
 
 autocmd FileType php setlocal tabstop=4 softtabstop=4 shiftwidth=4
