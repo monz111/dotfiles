@@ -21,5 +21,9 @@ if has('nvim')
   Plug 'nvim-treesitter/nvim-treesitter', {'do': ':TSUpdate'}
   Plug 'yuki-yano/fzf-preview.vim', { 'branch': 'release/rpc' }
   Plug 'phaazon/hop.nvim'
+  Plug 'nvim-treesitter/nvim-treesitter'
+  Plug 'nvim-treesitter/nvim-treesitter-context'
+  Plug 'nvim-lua/plenary.nvim'
+  Plug 'nvim-telescope/telescope.nvim', { 'tag': '0.1.1' }
 endif
 call plug#end()

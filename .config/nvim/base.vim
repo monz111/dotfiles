@@ -61,6 +61,8 @@ set shortmess+=c
 set completeopt=menuone,noinsert,noselect,preview
 set ambiwidth=double
 set expandtab
+set listchars=tab:-»
+set list
 
 if has('nvim')
   set clipboard+=unnamedplus

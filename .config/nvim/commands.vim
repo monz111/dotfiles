@@ -5,7 +5,7 @@ if has('nvim')
   autocmd TermOpen * startinsert
 endif
 
-autocmd FileType php setlocal tabstop=4 softtabstop=4 shiftwidth=4
+autocmd BufNewFile,BufRead *.php set syntax=php
 
 augroup my-glyph-palette
   autocmd! *
