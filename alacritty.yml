@@ -1,5 +1,8 @@
 import:
-  - ./theme/catppuccin/catppuccin-macchiato.yml
+  - ~/.config/alacritty/theme/catppuccin/catppuccin-mocha.yml
+  # - ~/.config/alacritty/theme/catppuccin/catppuccin-macchiato.yml
+  # - ~/.config/alacritty/theme/catppuccin/catppuccin-frappe.yml
+  # - ~/.config/alacritty/theme/catppuccin/catppuccin-latte.yml
 env:
   TERM: xterm-256color
 font:
@@ -9,13 +12,12 @@ font:
   bold:
     family: "JetBrainsMono Nerd Font"
     style: Bold
-  size: 17.0
+  size: 14.5
 key_bindings:
    - { key: Q, mods: Control, chars: "\x11" }
    - { key: Slash, mods: Control, chars: "\x1f" }
-
 window:
-  opacity: 0.98
+  opacity: 0.93
   padding:
     y: 0
   dynamic_padding: false
