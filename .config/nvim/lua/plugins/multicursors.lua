@@ -9,7 +9,7 @@ local M = {
   keys = {
     {
       mode = { "v", "n" },
-      "n",
+      "<c-n>",
       "<cmd>MCstart<cr>",
       desc = "Create a selection for selected text or word under the cursor",
     },
