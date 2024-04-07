@@ -14,6 +14,7 @@ function M.config()
     g = { name = "Git" },
     l = { name = "LSP" },
     t = { name = "Test" },
+    m = { name = "Markdown" },
     [";"] = { name = "Terminal" },
   }
 
