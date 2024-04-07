@@ -2,12 +2,11 @@ export LANGUAGE="ja_JP.UTF-8"
 export LANG="${LANGUAGE}"
 export LC_ALL="${LANGUAGE}"
 export GIT_EDITOR=nvim
-export ZSH=~/.oh-my-zsh
-source $ZSH/oh-my-zsh.sh
+export ZSH=$HOME/.oh-my-zsh
 
 ZSH_THEME="wezm"
 
-plugins=(git tmux zsh-syntax-highlighting zsh-completions wakatime zsh-autosuggestions)
+plugins=(git tmux zsh-syntax-highlighting zsh-completions zsh-autosuggestions dotenv)
 
 autoload -U compinit && compinit -u
 
@@ -42,11 +41,12 @@ setopt hist_no_functions
 setopt hist_no_store
 setopt hist_ignore_dups
 
-# Command
+fpath+=${ZSH_CUSTOM:-${ZSH:-~/.oh-my-zsh}/custom}/plugins/zsh-completions/src
+
 export PATH=/usr/local/bin:$PATH
-
-# Git
-fpath=($(brew --prefix)/share/zsh/site-functions $fpath)
-
-# Node
 export PATH=$HOME/.nodebrew/current/bin:$PATH
+export PATH="/opt/homebrew/opt/icu4c/bin:$PATH"
+export PATH="/opt/homebrew/opt/icu4c/sbin:$PATH"
+
+source $ZSH/oh-my-zsh.sh
+source ~/.zprofile
