@@ -5,6 +5,7 @@ add_newline = false
 format = """
 $directory\
 $character\
+$custom\
 """
 
 right_format = """
@@ -26,7 +27,7 @@ style = "bright-blue italic"
 
 [character]
 format = " $symbol "
-success_symbol = "[](bold bright-yellow)"
+success_symbol = "[❯](bold italic bright-yellow)"
 error_symbol = "[⊘](italic purple)"
 
 [directory]

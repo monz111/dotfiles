@@ -13,6 +13,12 @@ function M.config()
       "astro",
       "lua",
       "rust",
+      "toml",
+      "php",
+      "javascript",
+      "shell",
+      "sass",
+      "scss",
     },
     user_default_options = {
       names = false,
