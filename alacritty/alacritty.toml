@@ -1,0 +1,27 @@
+import = [
+  "~/.config/alacritty/theme/catppuccin-mocha.toml",
+]
+
+[window]
+opacity = 0.5
+blur = true
+decorations= "buttonless"
+padding = {y = 0}
+
+[selection]
+save_to_clipboard = true
+
+[colors.cursor]
+cursor = "#f1f1f1"
+text = "#ffffff"
+
+[font]
+size = 14
+
+[font.normal]
+family = "JetBrainsMono Nerd Font"
+style = "Regular"
+
+[font.bold]
+family = "JetBrainsMono Nerd Font"
+style = "Bold"

@@ -1,4 +1,7 @@
 #!/bin/sh
 mkdir -p ~/.config/nvim
-ln -sf ~/dotfiles/alacritty.yml ~/.config/alacritty/alacritty.yml
-ln -nfs ~/dotfiles/.config/nvim ~/.config/nvim
+curl -LO --output-dir ~/.config/alacritty/theme https://github.com/catppuccin/alacritty/raw/main/catppuccin-mocha.toml
+ln -nfs ~/dotfiles/alacritty/alacritty.toml ~/.config/alacritty/alacritty.toml
+ln -nfs ~/dotfiles/nvim ~/.config/nvim
+ln -nfs ~/dotfiles/tmux/.tmux.conf ~/ 
+ln -nfs ~/dotfiles/zsh/.zshrc ~/ 
