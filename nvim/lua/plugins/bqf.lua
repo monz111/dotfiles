@@ -13,6 +13,7 @@ function M.config()
       show_title = true,
       delay_syntax = 50,
       wrap = false,
+      winblend = 0,
     },
     func_map = {
       tab = "t",
