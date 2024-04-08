@@ -12,8 +12,8 @@ padding = {y = 0}
 save_to_clipboard = true
 
 [colors.cursor]
-cursor = "#f1f1f1"
-text = "#ffffff"
+cursor = "#eeeeee"
+text = "#000000"
 
 [font]
 size = 14
