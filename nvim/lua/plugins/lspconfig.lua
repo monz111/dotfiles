@@ -69,7 +69,6 @@ function M.config()
     "lua_ls",
     "cssls",
     "html",
-    "tsserver",
     "denols",
     "eslint",
     "tsserver",
@@ -83,9 +82,9 @@ function M.config()
       active = true,
       values = {
         { name = "DiagnosticSignError", text = icons.diagnostics.Error },
-        { name = "DiagnosticSignWarn",  text = icons.diagnostics.Warning },
-        { name = "DiagnosticSignHint",  text = icons.diagnostics.Hint },
-        { name = "DiagnosticSignInfo",  text = icons.diagnostics.Information },
+        { name = "DiagnosticSignWarn", text = icons.diagnostics.Warning },
+        { name = "DiagnosticSignHint", text = icons.diagnostics.Hint },
+        { name = "DiagnosticSignInfo", text = icons.diagnostics.Information },
       },
     },
     virtual_text = false,
@@ -125,19 +124,16 @@ function M.config()
 
     if server == "lua_ls" then
       require("neodev").setup {}
-    end
-
-    if server == "denols" then
-      lspconfig["denols"].setup({
-        root_dir = lspconfig.util.root_pattern("deno.json"),
+    elseif server == "denols" then
+      lspconfig["denols"].setup {
+        root_dir = lspconfig.util.root_pattern "deno.json",
         on_attach = M.on_attach,
-      })
-    elseif
-      lspconfig["tsserver"].setup({
-        root_dir = lspconfig.util.root_pattern("package.json"),
+      }
+    elseif server == "tsserver" then
+      lspconfig["tsserver"].setup {
+        root_dir = lspconfig.util.root_pattern "package.json",
         on_attach = M.on_attach,
-      })
-    then
+      }
     else
       lspconfig[server].setup(opts)
     end
