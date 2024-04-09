@@ -4,7 +4,9 @@ local M = {
 }
 
 function M.config()
+  local keymap = vim.keymap.set
   local wk = require "which-key"
+  keymap("n", "-", "<CMD>Oil --float<CR>", { desc = "Open parent directory" })
   wk.register {
     ["<leader>e"] = { "<cmd>Oil --float<cr>", "Open parent directory" },
   }
@@ -14,11 +16,11 @@ function M.config()
       show_hidden = true,
     },
     float = {
-      max_height = 20,
+      max_height = 30,
       max_width = 60,
     },
     keymaps = {
-      ["<leader>e"] = "actions.close",
+      ["<ESC>"] = "actions.close",
     },
   }
 end
