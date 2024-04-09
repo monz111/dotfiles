@@ -43,7 +43,7 @@ vim.opt.fillchars = vim.opt.fillchars + "eob: "
 vim.opt.fillchars:append {
   stl = " ",
 }
-
+vim.opt.sessionoptions="buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 vim.opt.shortmess:append "c"
 
 vim.cmd "set whichwrap+=<,>,[,],h,l"

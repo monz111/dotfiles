@@ -9,6 +9,7 @@ function M.config()
     v = { "<cmd>vsplit<CR>", "Split" },
     c = { name = "Lab Code" },
     b = { name = "Buffers" },
+    s = { name = "Sessions" },
     d = { name = "Debug" },
     f = { name = "Find" },
     g = { name = "Git" },
