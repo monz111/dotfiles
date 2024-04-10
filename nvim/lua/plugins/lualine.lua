@@ -11,10 +11,23 @@ function M.config()
     },
     sections = {
       lualine_a = {},
-      lualine_b = { "branch" },
-      lualine_c = { { "filename", path = 3, file_status = true } },
-      lualine_x = { "diagnostics", "filetype" },
-      lualine_y = {},
+      lualine_b = {
+        {
+          "harpoon2",
+          indicators = { " 1 ", " 2 ", " 3 ", " 4 " },
+          active_indicators = { "[1]", "[2]", "[3]", "[4]" },
+          _separator = "",
+          color = function(section)
+            return {
+              fg = vim.bo.modified and "#bdc3c7" or "#FFFFFF",
+              gui = vim.bo.modified and "reverse" or "bold",
+            }
+          end,
+        },
+      },
+      lualine_c = {},
+      lualine_x = { { "filename", path = 3, file_status = true } },
+      lualine_y = { "diagnostics", "filetype", "branch" },
       lualine_z = {},
     },
     extensions = { "quickfix", "man", "fugitive" },
