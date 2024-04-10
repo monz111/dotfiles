@@ -1,6 +1,5 @@
 local M = {
   "nvim-lualine/lualine.nvim",
-  dependencies = {},
 }
 
 function M.config()
@@ -13,9 +12,9 @@ function M.config()
     sections = {
       lualine_a = {},
       lualine_b = { "branch" },
-      lualine_c = { "filename", "diff" },
+      lualine_c = { { "filename", path = 3, file_status = true } },
       lualine_x = { "diagnostics", "filetype" },
-      lualine_y = { "progress" },
+      lualine_y = {},
       lualine_z = {},
     },
     extensions = { "quickfix", "man", "fugitive" },
