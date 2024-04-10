@@ -10,7 +10,10 @@ local M = {
 function M.config()
   require("noice").setup {
     require("notify").setup {
-      background_colour = "#cccccc";
+      fps = 1,
+      stages = 'static',
+      render = 'wrapped-compact',
+      background_colour = "#cccccc",
     },
     lsp = {
       override = {
