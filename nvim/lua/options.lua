@@ -28,7 +28,7 @@ vim.opt.spell = false
 vim.opt.tabstop = 2 -- insert 2 spaces for a tab
 vim.opt.cursorline = true -- highlight the current line
 vim.opt.number = false -- set numbered lines
-vim.opt.laststatus = 3
+vim.opt.laststatus = 0
 vim.opt.showcmd = false
 vim.opt.ruler = false
 vim.opt.relativenumber = false -- set relative numbered lines
@@ -52,3 +52,7 @@ vim.cmd [[set iskeyword+=-]]
 vim.g.netrw_banner = 0
 vim.g.netrw_mouse = 2
 
+vim.g.tpipeline_autoembed = 0
+vim.g.tpipeline_clearstl = 1
+vim.o.fcs = "stlnc:─,stl:─,vert:│"
+vim.opt.fillchars:append({ eob = " " })

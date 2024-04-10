@@ -27,7 +27,7 @@ function M.config()
       },
       lualine_c = {},
       lualine_x = { { "filename", path = 3, file_status = true } },
-      lualine_y = { "diagnostics", "filetype", "branch" },
+      lualine_y = { "diagnostics", "branch" },
       lualine_z = {},
     },
     extensions = { "quickfix", "man", "fugitive" },
