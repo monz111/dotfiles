@@ -16,7 +16,7 @@ cursor = "#eeeeee"
 text = "#000000"
 
 [font]
-size = 14
+size = 18
 
 [font.normal]
 family = "JetBrainsMono Nerd Font"
