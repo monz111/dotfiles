@@ -27,7 +27,7 @@ function M.config()
   local cat = require "catppuccin"
   cat.options.transparent_background = true
   cat.compile()
-  vim.cmd.colorscheme "catppuccin-mocha"
+  vim.cmd.colorscheme "catppuccin"
 
   local keymap = vim.keymap.set
   keymap("n", "<leader>tb", function()
