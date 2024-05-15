@@ -11,6 +11,7 @@ function M.config()
   wk.register {
     ["<leader>-"] = { "<cmd>DBUIToggle<cr>", "DB UI" },
   }
+  vim.g.db_ui_show_help = 0
   -- notification
   vim.g.db_ui_use_nvim_notify = 1
   vim.g.db_ui_force_echo_notifications = 1
