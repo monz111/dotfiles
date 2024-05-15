@@ -141,7 +141,6 @@ function M.config()
       { name = "path" },
       { name = "calc" },
       { name = "emoji" },
-      { name = "vim-dadbod-completion" },
     },
     confirm_opts = {
       behavior = cmp.ConfirmBehavior.Replace,
