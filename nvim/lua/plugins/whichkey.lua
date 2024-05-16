@@ -17,6 +17,7 @@ function M.config()
     t = { name = "Test" },
     m = { name = "Markdown" },
     [";"] = { name = "Terminal" },
+    ["="] = { name = "Formatter" },
   }
 
   local which_key = require "which-key"
