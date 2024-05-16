@@ -57,3 +57,12 @@ vim.g.tpipeline_autoembed = 0
 vim.g.tpipeline_clearstl = 1
 vim.o.fcs = "stlnc:─,stl:─,vert:│"
 vim.opt.fillchars:append({ eob = " " })
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "*",
+  command = "setlocal shiftwidth=4 softtabstop=-1 expandtab"
+})
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "php",
+  command = "setlocal shiftwidth=4 softtabstop=-1 noexpandtab tabstop=4"
+})
