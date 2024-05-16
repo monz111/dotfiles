@@ -63,6 +63,10 @@ vim.api.nvim_create_autocmd("FileType", {
   command = "setlocal shiftwidth=4 softtabstop=-1 expandtab"
 })
 vim.api.nvim_create_autocmd("FileType", {
+  pattern = "lua",
+  command = "setlocal shiftwidth=2 softtabstop=-1 expandtab"
+})
+vim.api.nvim_create_autocmd("FileType", {
   pattern = "php",
   command = "setlocal shiftwidth=4 softtabstop=-1 noexpandtab tabstop=4"
 })
