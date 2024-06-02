@@ -2,7 +2,6 @@ local M = {
   "kristijanhusak/vim-dadbod-ui",
   dependencies = {
     { "tpope/vim-dadbod", lazy = true },
-    { "kristijanhusak/vim-dadbod-completion", ft = { "sql", "mysql", "plsql" }, lazy = true },
     { "pbogut/vim-dadbod-ssh", lazy = true },
   },
 }
@@ -12,9 +11,7 @@ function M.config()
   wk.register {
     ["<leader>-"] = { "<cmd>DBUIToggle<cr>", "DB UI" },
   }
-  vim.cmd(
-    [[autocmd FileType sql,mysql,plsql lua require("cmp").setup.buffer({ sources = {{ name = "vim-dadbod-completion" }, {name = "buffer"}, {name = "treesitter"}} })]]
-  )
+
   vim.g.db_ui_show_help = 0
   -- notification
   vim.g.db_ui_use_nvim_notify = 1

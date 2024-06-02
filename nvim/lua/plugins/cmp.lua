@@ -36,6 +36,7 @@ local M = {
     {
       "hrsh7th/cmp-nvim-lua",
     },
+    { "kristijanhusak/vim-dadbod-completion", lazy = true },
   },
 }
 
@@ -159,6 +160,14 @@ function M.config()
       ghost_text = false,
     },
   }
+
+  -- Setup autocompletion for vim-dadbod
+  cmp.setup.filetype({ "sql", "mysql", "plsql" }, {
+    sources = {
+      { name = "vim-dadbod-completion" },
+      { name = "buffer" },
+    },
+  })
 end
 
 return M

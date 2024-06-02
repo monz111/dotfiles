@@ -75,6 +75,7 @@ function M.config()
     "bashls",
     "jsonls",
     "yamlls",
+    "intelephense",
   }
 
   local default_diagnostic_config = {
@@ -134,6 +135,8 @@ function M.config()
         root_dir = lspconfig.util.root_pattern "package.json",
         on_attach = M.on_attach,
       }
+    elseif server == "intelephense" then
+      lspconfig["intelephense"].setup {}
     else
       lspconfig[server].setup(opts)
     end

@@ -14,6 +14,7 @@ function M.config()
       javascriptreact = { { "prettierd", "prettier" } },
       typescriptreact = { { "prettierd", "prettier" } },
       json = { { "prettierd", "prettier" } },
+      php = { { "intelephense", "prettier" } },
       markdown = { { "prettierd", "prettier" } },
       html = { "htmlbeautifier" },
       bash = { "beautysh" },
@@ -25,6 +26,8 @@ function M.config()
       sh = { { "shfmt" } },
       sql = { { "sql_formatter" } },
       mysql = { { "sql_formatter" } },
+      ["*"] = { "codespell" },
+      ["_"] = { "trim_whitespace" },
     },
   }
   -- dadbod

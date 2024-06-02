@@ -3,7 +3,7 @@ import = [
 ]
 
 [window]
-opacity = 0.5
+opacity = 0.9
 blur = true
 decorations= "buttonless"
 padding = {y = 0}
