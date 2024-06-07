@@ -16,6 +16,7 @@ function M.config()
     l = { name = "LSP" },
     t = { name = "Test" },
     m = { name = "Markdown" },
+    w = { name = "Window" },
     [";"] = { name = "Terminal" },
     ["="] = { name = "Formatter" },
   }

@@ -3,12 +3,10 @@ local M = {
 }
 
 function M.config()
-  -- resizing splits
-  -- these keymaps will also accept a range,
-  -- for example `10<A-h>` will `resize_left` by `(10 * config.default_amount)`
-  vim.keymap.set("n", "<C-a>", function()
-    require("smart-splits").start_resize_mode()
-  end)
+  local wk = require "which-key"
+  wk.register {
+    ["<leader>wr"] = { "<cmd>lua require('smart-splits').start_resize_mode()<cr>", "SmartSplits start resize mode" },
+  }
   vim.keymap.set("n", "<C-w>h", require("smart-splits").resize_left)
   vim.keymap.set("n", "<C-w>j", require("smart-splits").resize_down)
   vim.keymap.set("n", "<C-w>k", require("smart-splits").resize_up)
