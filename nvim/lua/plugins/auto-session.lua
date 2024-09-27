@@ -23,11 +23,11 @@ function M.config()
   })
 
   local wk = require "which-key"
-  wk.register {
-    ["<leader> r"] = { ":echo ' Session has been restored.' | SessionRestore<cr>", "Session Resotore" },
-    ["<leader>ss"] = { ":echo ' Session has been saved.' | SessionSave<cr>", "Session Save" },
-    ["<leader>sl"] = { "<cmd>Autosession search<cr>", "Sassion List" },
-    ["<leader>sd"] = { "<cmd>Autosession delete<cr>", "Sassion Delete" },
+  wk.add {
+    { "<leader><leader>r", ":echo ' Session has been restored.' | SessionRestore<cr>", desc = "Session Resotore" },
+    { "<leader>sd", "<cmd>Autosession delete<cr>", desc = "Sassion Delete" },
+    { "<leader>sl", "<cmd>Autosession search<cr>", desc = "Sassion List" },
+    { "<leader>ss", ":echo ' Session has been saved.' | SessionSave<cr>", desc = "Session Save" },
   }
 end
 

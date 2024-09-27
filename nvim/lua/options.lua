@@ -24,7 +24,7 @@ vim.opt.updatetime = 100 -- faster completion (4000ms default)
 vim.opt.writebackup = false -- if a file is being edited by another program (or was written to file while editing with another program), it is not allowed to be edited
 vim.opt.expandtab = true -- convert tabs to spaces
 vim.opt.shiftwidth = 2 -- the number of spaces inserted for each indentation
-vim.opt.spelllang = 'en_us'
+vim.opt.spelllang = "en_us"
 vim.opt.spell = false
 vim.opt.tabstop = 2 -- insert 2 spaces for a tab
 vim.opt.cursorline = true -- highlight the current line
@@ -44,7 +44,7 @@ vim.opt.fillchars = vim.opt.fillchars + "eob: "
 vim.opt.fillchars:append {
   stl = " ",
 }
-vim.opt.sessionoptions="buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
+vim.opt.sessionoptions = "buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 vim.opt.shortmess:append "c"
 
 vim.cmd "set whichwrap+=<,>,[,],h,l"
@@ -56,17 +56,18 @@ vim.g.netrw_mouse = 2
 vim.g.tpipeline_autoembed = 0
 vim.g.tpipeline_clearstl = 1
 vim.o.fcs = "stlnc:─,stl:─,vert:│"
-vim.opt.fillchars:append({ eob = " " })
+vim.opt.fillchars:append { eob = " " }
 
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "*",
-  command = "setlocal shiftwidth=4 softtabstop=-1 expandtab"
-})
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = "lua",
-  command = "setlocal shiftwidth=2 softtabstop=-1 expandtab"
+  callback = function()
+    vim.bo.expandtab = true
+    vim.bo.tabstop = 2
+    vim.bo.shiftwidth = 2
+    vim.bo.softtabstop = 2
+  end,
 })
 vim.api.nvim_create_autocmd("FileType", {
   pattern = "php",
-  command = "setlocal shiftwidth=4 softtabstop=-1 noexpandtab tabstop=4"
+  command = "setlocal shiftwidth=4 softtabstop=4 expandtab tabstop=2",
 })

@@ -1,5 +1,5 @@
 palette = "catppuccin_mocha"
-command_timeout = 1000
+command_timeout = 2000
 add_newline = false
 
 format = """

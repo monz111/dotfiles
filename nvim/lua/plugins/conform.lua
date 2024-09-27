@@ -9,11 +9,12 @@ function M.config()
   conform.setup {
     formatters_by_ft = {
       lua = { "stylua" },
-      javascript = { { "prettierd", "prettier" } },
-      typescript = { { "prettierd", "prettier" } },
-      javascriptreact = { { "prettierd", "prettier" } },
-      typescriptreact = { { "prettierd", "prettier" } },
-      json = { { "prettierd", "prettier" } },
+      javascript = { "biome" },
+      typescript = { "biome" },
+      json = { "biome" },
+      jsonc = { "biome" },
+      javascriptreact = { "biome" },
+      typescriptreact = { "prettier" },
       php = { { "intelephense", "prettier" } },
       markdown = { { "prettierd", "prettier" } },
       html = { "htmlbeautifier" },
@@ -29,6 +30,17 @@ function M.config()
       ["*"] = { "codespell" },
       ["_"] = { "trim_whitespace" },
     },
+    formatters = {
+      biome = {
+        args = {
+        "format",
+        "--write",
+        ("--config-path=" .. os.getenv("HOME") .. "/dotfiles/biome/"),
+        "--stdin-file-path",
+        "$FILENAME",
+        },
+      },
+    },
   }
   -- dadbod
   vim.filetype.add {
@@ -40,7 +52,7 @@ function M.config()
       async = false,
       timeout_ms = 1000,
     }
-  end, { desc = "Format file or range (in visual mode)" })
+  end, { desc = "Format buffe" })
 end
 
 return M

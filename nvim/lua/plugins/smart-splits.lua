@@ -4,8 +4,8 @@ local M = {
 
 function M.config()
   local wk = require "which-key"
-  wk.register {
-    ["<leader>wr"] = { "<cmd>lua require('smart-splits').start_resize_mode()<cr>", "SmartSplits start resize mode" },
+  wk.add {
+    { "kleader>wr", "<cmd>lua require('smart-splits').start_resize_mode()<cr>", desc = "SmartSplits start resize mode" },
   }
   vim.keymap.set("n", "<C-w>h", require("smart-splits").resize_left)
   vim.keymap.set("n", "<C-w>j", require("smart-splits").resize_down)

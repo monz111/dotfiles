@@ -1,51 +1,39 @@
 local M = {
   "lukas-reineke/indent-blankline.nvim",
-  event = "VeryLazy",
-  commit = "9637670896b68805430e2f72cf5d16be5b97a22a",
+  main = "ibl",
+  ---@module "ibl"
+  ---@type ibl.config
+  opts = {},
 }
 
 function M.config()
-  local icons = require ".icons"
+  vim.opt.list = true
+  vim.opt.listchars = {
+    space = "⋅",
+    eol = "",
+    -- eol = "󱞱",
+    tab = " ",
+  }
+  local highlight = {
+    "IndentBlanklineIndent1",
+    "IndentBlanklineIndent2",
+    "IndentBlanklineIndent3",
+    "IndentBlanklineIndent4",
+    "IndentBlanklineIndent5",
+  }
 
-  require("indent_blankline").setup {
-    buftype_exclude = { "terminal", "nofile" },
-    filetype_exclude = {
-      "help",
-      "startify",
-      "dashboard",
-      "lazy",
-      "neogitstatus",
-      "NvimTree",
-      "Trouble",
-      "text",
-    },
-    -- char = icons.ui.LineLeft,
-    char = icons.ui.LineMiddle,
-    -- context_char = icons.ui.LineLeft,
-    context_char = icons.ui.LineMiddle,
-    show_trailing_blankline_indent = false,
-    show_first_indent_level = true,
-    use_treesitter = true,
-    show_current_context = true,
-    indent = { char = icons.ui.LineMiddle },
-    whitespace = {
-      remove_blankline_trail = true,
-    },
+  local hooks = require "ibl.hooks"
+  hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
+    vim.api.nvim_set_hl(0, "IndentBlanklineIndent1", { fg = "#4A4A4A" })
+    vim.api.nvim_set_hl(0, "IndentBlanklineIndent2", { fg = "#686868" })
+    vim.api.nvim_set_hl(0, "IndentBlanklineIndent3", { fg = "#868686" })
+    vim.api.nvim_set_hl(0, "IndentBlanklineIndent4", { fg = "#A4A4A4" })
+    vim.api.nvim_set_hl(0, "IndentBlanklineIndent5", { fg = "#C2C2C2" })
+  end)
 
-    exclude = {
-      filetypes = {
-        "help",
-        "startify",
-        "dashboard",
-        "lazy",
-        "neogitstatus",
-        "NvimTree",
-        "Trouble",
-        "text",
-      },
-      buftypes = { "terminal", "nofile" },
-    },
-    scope = { enabled = false },
+  require("ibl").setup {
+    indent = { char = "│" },
+    scope = { enabled = true, show_start = false, highlight = highlight },
   }
 end
 

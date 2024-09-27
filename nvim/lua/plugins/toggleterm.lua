@@ -11,10 +11,10 @@ function M.config()
   }
 
   local wk = require "which-key"
-  wk.register {
-    ["<leader>;-"] = { "<cmd>ToggleTerm direction=horizontal<cr>", "Horizontal" },
-    ["<leader>;|"] = { "<cmd>ToggleTerm direction=vertical<cr>", "Vertical" },
-    ["<leader>;="] = { "<cmd>ToggleTerm direction=float<cr>", "Float" },
+  wk.add {
+    { "<leader>;-", "<cmd>ToggleTerm direction=horizontal<cr>", desc = "Horizontal" },
+    { "<leader>;;", "<cmd>ToggleTerm direction=float<cr>", desc = "Float" },
+    { "<leader>;|", "<cmd>ToggleTerm direction=vertical<cr>", desc = "Vertical" },
   }
 
   local function get_buf_size()

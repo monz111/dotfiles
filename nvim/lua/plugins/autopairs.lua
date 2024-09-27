@@ -7,6 +7,11 @@ M.config = function()
     check_ts = true,
     disable_filetype = { "TelescopePrompt", "spectre_panel" },
   }
+  per_filetype = {
+    ["html"] = {
+      enable_close = false,
+    },
+  }
 end
 
 return M

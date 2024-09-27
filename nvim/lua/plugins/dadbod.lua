@@ -8,8 +8,8 @@ local M = {
 
 function M.config()
   local wk = require "which-key"
-  wk.register {
-    ["<leader>-"] = { "<cmd>DBUIToggle<cr>", "DB UI" },
+  wk.add {
+    { "<leader>-", "<cmd>DBUIToggle<cr>", desc = "DB UI" },
   }
 
   vim.g.db_ui_show_help = 0

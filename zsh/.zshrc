@@ -50,3 +50,11 @@ export PATH="/opt/homebrew/opt/icu4c/sbin:$PATH"
 
 source $ZSH/oh-my-zsh.sh
 source ~/.zprofile
+
+# pnpm
+export PNPM_HOME="/Users/monz/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end

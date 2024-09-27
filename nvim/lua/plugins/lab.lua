@@ -5,10 +5,10 @@ local M = {
 
 function M.config()
   local wk = require "which-key"
-  wk.register {
-    ["<leader>cr"] = { "<cmd>:Lab code run<cr>", "Lab Run" },
-    ["<leader>cs"] = { "<cmd>:Lab code stop<cr>", "Lab Stop" },
-    ["<leader>cp"] = { "<cmd>:Lab code panel<cr>", "Lab Panel" },
+  wk.add {
+    { "<leader>cp", "<cmd>:Lab code panel<cr>", desc = "Lab Panel" },
+    { "<leader>cr", "<cmd>:Lab code run<cr>", desc = "Lab Run" },
+    { "<leader>cs", "<cmd>:Lab code stop<cr>", desc = "Lab Stop" },
   }
   require("lab").setup {
     code_runner = {

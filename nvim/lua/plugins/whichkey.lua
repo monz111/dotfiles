@@ -3,24 +3,6 @@ local M = {
 }
 
 function M.config()
-  local mappings = {
-    p = { "<cmd>lua require('telescope').extensions.projects.projects()<CR>", "Projects" },
-    q = { "<cmd>confirm q<CR>", "Quit" },
-    v = { "<cmd>vsplit<CR>", "Split" },
-    c = { name = "Lab Code" },
-    b = { name = "Buffers" },
-    s = { name = "Sessions" },
-    d = { name = "Debug" },
-    f = { name = "Find" },
-    g = { name = "Git" },
-    l = { name = "LSP" },
-    t = { name = "Test" },
-    m = { name = "Markdown" },
-    w = { name = "Window" },
-    [";"] = { name = "Terminal" },
-    ["="] = { name = "Formatter" },
-  }
-
   local which_key = require "which-key"
   which_key.setup {
     plugins = {
@@ -40,18 +22,18 @@ function M.config()
         g = false,
       },
     },
-    window = {
+    win = {
       border = "none",
-      position = "bottom",
-      padding = { 1, 1, 1, 1 },
-      winblend = 0,
+      padding = { 1, 0, 1, 1 },
+      wo = {
+        winblend = 0,
+      },
     },
     icons = {
       breadcrumb = "»", -- symbol used in the command line area that shows your active key combo
       separator = "-", -- symbol used between a key and it's label
       group = "󰉋 ", -- symbol prepended to a group
     },
-    ignore_missing = true,
     show_help = false,
     show_keys = false,
     disable = {
@@ -60,12 +42,23 @@ function M.config()
     },
   }
 
-  local opts = {
-    mode = "n", -- NORMAL mode
-    prefix = "<leader>",
-  }
+  which_key.add({
+    { "<leader>p", "<cmd>lua require('telescope').extensions.projects.projects()<CR>", desc = "Projects"},
+    { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
+    { "<leader>v", "<cmd>vsplit<CR>", desc = "Split"},
+    { "<leader>c", group = "Lab Code" },
+    { "<leader>b", group = "Buffers" },
+    { "<leader>s", group = "Sessions" },
+    { "<leader>d", group = "Debug" },
+    { "<leader>f", group = "Find" },
+    { "<leader>g", group = "Git" },
+    { "<leader>l", group = "LSP" },
+    { "<leader>t", group = "Test" },
+    { "<leader>m", group = "Markdown" },
+    { "<leader>w", group = "Window" },
+    { "<leader>;", group = "Terminal" },
+  })
 
-  which_key.register(mappings, opts)
 end
 
 return M

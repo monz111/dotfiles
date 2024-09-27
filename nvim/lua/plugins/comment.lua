@@ -11,12 +11,9 @@ local M = {
 
 function M.config()
   local wk = require "which-key"
-  wk.register {
-    ["<leader>/"] = { "<Plug>(comment_toggle_linewise_current)", "Comment" },
-  }
-
-  wk.register {
-    ["<leader>/"] = { "<Plug>(comment_toggle_linewise_visual)", "Comment", mode = "v" },
+  wk.add {
+    { "<leader>/", "<Plug>(comment_toggle_linewise_current)", desc = "Comment" },
+    { "<leader>/", "<Plug>(comment_toggle_linewise_visual)", desc = "Comment", mode = "v" },
   }
 
   vim.g.skip_ts_context_commentstring_module = true
@@ -29,7 +26,7 @@ function M.config()
     pre_hook = require("ts_context_commentstring.integrations.comment_nvim").create_pre_hook(),
   }
 
-  require('Comment.ft').mysql = { '-- %s', '/* %s */' }
+  require("Comment.ft").mysql = { "-- %s", "/* %s */" }
 end
 
 return M
