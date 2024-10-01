@@ -17,17 +17,34 @@ function M.config()
           indicators = { " 1 ", " 2 ", " 3 ", " 4 " },
           active_indicators = { "[1]", "[2]", "[3]", "[4]" },
           _separator = "",
-          color = function(section)
-            return {
-              fg = vim.bo.modified and "#bdc3c7" or "#FFFFFF",
-              gui = vim.bo.modified and "reverse" or "bold",
-            }
-          end,
+          color = { fg = "#f1f1f1" },
         },
       },
-      lualine_c = {},
-      lualine_x = { { "filename", path = 3, file_status = true } },
-      lualine_y = { "diagnostics", "branch" },
+      lualine_c = {
+        {
+          "filetype",
+          colored = false,
+          icon_only = true,
+          icon = { align = "right" },
+          padding = { left = 1, right = 0 },
+        },
+        {
+          "filename",
+          file_status = true,
+          path = 0,
+          shorting_target = 40,
+          symbols = {
+            modified = "󰣕",
+            readonly = "[ReadOnly]",
+            unnamed = "No Name",
+            newfile = "New",
+          },
+          color = { fg = "#888888" },
+          padding = 0,
+        },
+      },
+      lualine_x = { { "filename", path = 3, file_status = false, color = { fg = "#888888" } } },
+      lualine_y = {},
       lualine_z = {},
     },
     extensions = { "quickfix", "man", "fugitive" },
