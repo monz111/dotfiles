@@ -17,57 +17,54 @@ local lastVisibleApp = "kitty"
 local function arrangeAndToggleApps(activeAppName)
   local screen = hs.screen.primaryScreen()
   local windowLayout = {}
-
-  local function addToLayout(appName, layoutPosition)
-    table.insert(windowLayout, { appName, nil, screen, layoutPosition, nil, nil })
+  if activeAppName == "Arc" then
+    table.insert(windowLayout, { "Arc", nil, screen, layout.left70, nil, nil })
+    table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
+  elseif activeAppName == "Slack" then
+    table.insert(windowLayout, { "Arc", nil, screen, layout.left60, nil, nil })
+    table.insert(windowLayout, { "Slack", nil, screen, layout.right40, nil, nil })
+  else
+    table.insert(windowLayout, { "Arc", nil, screen, layout.left40, nil, nil })
+    table.insert(windowLayout, { "kitty", nil, screen, layout.right60, nil, nil })
   end
-
-  local function setWindowLayout()
-    if activeAppName == "Arc" then
-      addToLayout("Arc", layout.left70)
-      addToLayout(lastVisibleApp, layout.right30)
-    elseif activeAppName == "Slack" then
-      addToLayout("Arc", layout.left60)
-      addToLayout("Slack", layout.right40)
-    else
-      addToLayout("Arc", layout.left40)
-      addToLayout("kitty", layout.right60)
+  hs.layout.apply(windowLayout)
+  local arcApp = hs.application.find("Arc")
+  local kittyApp = hs.application.find("kitty")
+  local slackApp = hs.application.find("Slack")
+  if arcApp then
+    arcApp:unhide()
+  end
+  if activeAppName == "Slack" then
+    if slackApp then
+      slackApp:unhide()
     end
-  end
-
-  local function showOrHideApp(appName, shouldShow)
-    local app = hs.application.find(appName)
-    if app then
-      if shouldShow then
-        app:unhide()
-      else
-        app:hide()
+    if kittyApp then
+      kittyApp:hide()
+    end
+    lastVisibleApp = "Slack"
+  elseif activeAppName == "kitty" then
+    if kittyApp then
+      kittyApp:unhide()
+    end
+    if slackApp then
+      slackApp:hide()
+    end
+    lastVisibleApp = "kitty"
+  else
+    if kittyApp and lastVisibleApp == "kitty" then
+      kittyApp:unhide()
+    end
+    if slackApp and lastVisibleApp == "Slack" then
+      slackApp:unhide()
+    end
+    if lastVisibleApp ~= "kitty" and lastVisibleApp ~= "Slack" then
+      if kittyApp then
+        kittyApp:unhide()
+        lastVisibleApp = "kitty"
       end
     end
   end
-
-  local function updateLastVisibleApp()
-    if activeAppName == "Slack" or activeAppName == "kitty" then
-      lastVisibleApp = activeAppName
-    elseif activeAppName == "Arc" and lastVisibleApp ~= "kitty" and lastVisibleApp ~= "Slack" then
-      lastVisibleApp = "kitty"
-    end
-  end
-
-  setWindowLayout()
-  hs.layout.apply(windowLayout)
-  showOrHideApp("Arc", true)
-
-  if activeAppName == "Arc" then
-    showOrHideApp(lastVisibleApp, true)
-  else
-    showOrHideApp("Slack", activeAppName == "Slack")
-    showOrHideApp("kitty", activeAppName == "kitty")
-  end
-
-  updateLastVisibleApp()
 end
-
 local function arrangeActiveWindow()
   local activeApp = hs.application.frontmostApplication()
   local activeAppName = activeApp:name()
