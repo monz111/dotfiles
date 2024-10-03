@@ -52,7 +52,6 @@ local function arrangeAndToggleApps(activeAppName)
     lastVisibleApp = "kitty"
   else
     if kittyApp and lastVisibleApp == "kitty" then
-      os.execute("im-select com.apple.keylayout.ABC")
       kittyApp:unhide()
     end
     if slackApp and lastVisibleApp == "Slack" then
