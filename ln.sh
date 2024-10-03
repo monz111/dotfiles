@@ -6,5 +6,6 @@ ln -nfs ~/dotfiles/nvim ~/.config/nvim
 ln -nfs ~/dotfiles/tmux/.tmux.conf ~/ 
 ln -nfs ~/dotfiles/zsh/.zshrc ~/ 
 ln -nfs ~/dotfiles/starship/starship.toml ~/.config/starship.toml
+ln -nfs ~/dotfiles/biome/.biome.json ~/
 ln -nfs ~/dotfiles/kitty/ ~/.config/kitty
 ln -nfs ~/dotfiles/hammerspoon/init.lua ~/.hammerspoon
