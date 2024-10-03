@@ -47,7 +47,7 @@ M.config = function()
   --                 :BufferGotoPinned
   --                 :BufferGotoUnpinned
   -- Close buffer
-  -- map("n", "<C-X>", "<Cmd>BufferClose<CR>", opts)
+  map("n", "<C-w>", "<Cmd>BufferClose<CR>", opts)
   map("n", "<C-c>", "<Cmd>BufferCloseBuffersRight<CR>", opts)
   -- Wipeout buffer
   --                 :BufferWipeout

@@ -31,13 +31,16 @@ function M.config()
       ["_"] = { "trim_whitespace" },
     },
     formatters = {
+      stylua = {
+        prepend_args = { "--indent-type", "Spaces", "--indent-width", "2" },
+      },
       biome = {
         args = {
-        "format",
-        "--write",
-        ("--config-path=" .. os.getenv("HOME") .. "/dotfiles/biome/"),
-        "--stdin-file-path",
-        "$FILENAME",
+          "format",
+          "--write",
+          ("--config-path=" .. os.getenv "HOME" .. "/dotfiles/biome/"),
+          "--stdin-file-path",
+          "$FILENAME",
         },
       },
     },
