@@ -9,10 +9,11 @@ local M = {
 
 function M.config()
   local wk = require "which-key"
-  wk.register {
-    ["<leader>mp"] = { "<Plug>MarkdownPreview<cr>", "MarkdownPreview" },
-    ["<leader>mt"] = { "<Plug>MarkdownPreviewToggle<cr>", "MarkdownPreviewToggle" },
-    ["<leader>ms"] = { "<Plug>MarkdownPreviewStop<cr>", "MarkdownPreviewStop" },
+
+  wk.add {
+    { "<leader>mp", "<Plug>MarkdownPreview<cr>", desc = "MarkdownPreview" },
+    { "<leader>ms", "<Plug>MarkdownPreviewStop<cr>", desc = "MarkdownPreviewStop" },
+    { "<leader>mt", "<Plug>MarkdownPreviewToggle<cr>", desc = "MarkdownPreviewToggle" },
   }
 
 end
