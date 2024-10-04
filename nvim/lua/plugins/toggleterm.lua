@@ -3,6 +3,7 @@ local M = {
   event = "VeryLazy",
 }
 
+-- c-\
 function M.config()
   local execs = {
     { nil, "<F1>", "Horizontal Terminal", "horizontal", 0.3 },

@@ -4,9 +4,8 @@ local M = {
 }
 
 function M.config()
-  require("neotab").setup
- {
-    tabkey = "<Tab>",
+  require("neotab").setup {
+    tabkey = "",
     act_as_tab = true, -- fallback to tab, if `tabout` action is not available
     behavior = "nested", ---@type ntab.behavior
     pairs = { ---@type ntab.pair[]
