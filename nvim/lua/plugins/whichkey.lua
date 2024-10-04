@@ -54,7 +54,6 @@ function M.config()
     { "<leader>g", group = "Git" },
     { "<leader>l", group = "LSP" },
     { "<leader>t", group = "Test" },
-    { "<leader>m", group = "Markdown" },
     { "<leader>w", group = "Window" },
     { "<leader>;", group = "Terminal" },
   })

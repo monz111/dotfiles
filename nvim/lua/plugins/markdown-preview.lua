@@ -11,9 +11,9 @@ function M.config()
   local wk = require "which-key"
 
   wk.add {
-    { "<leader>mp", "<Plug>MarkdownPreview<cr>", desc = "MarkdownPreview" },
-    { "<leader>ms", "<Plug>MarkdownPreviewStop<cr>", desc = "MarkdownPreviewStop" },
-    { "<leader>mt", "<Plug>MarkdownPreviewToggle<cr>", desc = "MarkdownPreviewToggle" },
+    { "<leader>mdp", "<Plug>MarkdownPreview<cr>", desc = "MarkdownPreview" },
+    { "<leader>mds", "<Plug>MarkdownPreviewStop<cr>", desc = "MarkdownPreviewStop" },
+    { "<leader>mdt", "<Plug>MarkdownPreviewToggle<cr>", desc = "MarkdownPreviewToggle" },
   }
 
 end
