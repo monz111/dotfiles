@@ -81,3 +81,10 @@ end
 
 appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
+
+
+hs.hotkey.bind({"cmd", "alt", "ctrl"}, "R", function()
+    hs.reload()
+end)
+
+hs.alert.show("Hammerspoon config loaded")
