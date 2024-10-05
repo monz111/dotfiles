@@ -24,5 +24,7 @@ keymap("v", ">", ">gv", opts)
 keymap({ "n", "o", "x" }, "<s-h>", "^", opts)
 keymap({ "n", "o", "x" }, "<s-l>", "g_", opts)
 keymap("x", "p", [["_dP]])
+keymap("n", "J", "}", opts)
+keymap("n", "K", "{", opts)
 
 vim.api.nvim_set_keymap("t", "<C-;>", "<C-\\><C-n>", opts)
