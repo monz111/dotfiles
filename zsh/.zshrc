@@ -77,14 +77,5 @@ export FZF_DEFAULT_OPTS=" \
 --color=selected-bg:#45475a \
 --multi"
 
-#sesh-session-list
-function sl() {
-  {
-    exec </dev/tty
-    exec <&1
-    local session
-    session=$(sesh list -c | fzf --height 40% --reverse --border-label ' sesh ' --border --prompt '⚡  ')
-    [[ -z "$session" ]] && return
-    sesh connect $session
-  }
-}
+#sesh session-list
+alias sl="sesh list -c -z | fzf-tmux"
