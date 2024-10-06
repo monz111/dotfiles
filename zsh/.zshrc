@@ -58,3 +58,33 @@ case ":$PATH:" in
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
 # pnpm end
+
+fssh() {
+    local sshLoginHost
+    sshLoginHost=`cat ~/.ssh/config | grep -i ^host | awk '{print $2}' | fzf`
+    if [ "$sshLoginHost" = "" ]; then
+        return 1
+    fi
+    ssh ${sshLoginHost}
+}
+
+eval "$(zoxide init --cmd cd zsh)"
+
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
+--color=fg:#cdd6f4,header:#f38ba8,info:#cba6f7,pointer:#f5e0dc \
+--color=marker:#b4befe,fg+:#cdd6f4,prompt:#cba6f7,hl+:#f38ba8 \
+--color=selected-bg:#45475a \
+--multi"
+
+#sesh-session-list
+function sl() {
+  {
+    exec </dev/tty
+    exec <&1
+    local session
+    session=$(sesh list -c | fzf --height 40% --reverse --border-label ' sesh ' --border --prompt '⚡  ')
+    [[ -z "$session" ]] && return
+    sesh connect $session
+  }
+}
