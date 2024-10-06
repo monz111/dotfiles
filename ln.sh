@@ -9,3 +9,4 @@ ln -nfs ~/dotfiles/starship/starship.toml ~/.config/starship.toml
 ln -nfs ~/dotfiles/biome/.biome.json ~/
 ln -nfs ~/dotfiles/kitty/ ~/.config/kitty
 ln -nfs ~/dotfiles/hammerspoon/init.lua ~/.hammerspoon
+ln -nfs ~/dotfiles/sesh ~/.config/sesh

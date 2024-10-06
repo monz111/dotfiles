@@ -38,7 +38,7 @@ function M.config()
   local wk = require "which-key"
   wk.add {
     {
-      "<leader>b",
+      "<leader>z",
       "<cmd>lua require('snipe').open_buffer_menu()<cr>",
       desc = "Open Snipe buffer menu",
     },
