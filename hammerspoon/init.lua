@@ -17,54 +17,26 @@ local lastVisibleApp = "kitty"
 local function arrangeAndToggleApps(activeAppName)
   local screen = hs.screen.primaryScreen()
   local windowLayout = {}
+  local kittyApp = hs.application.find("kitty")
+  local slackApp = hs.application.find("Slack")
+
   if activeAppName == "Arc" then
     table.insert(windowLayout, { "Arc", nil, screen, layout.left70, nil, nil })
     table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
+  elseif activeAppName == "kitty" then
+    table.insert(windowLayout, { "Arc", nil, screen, layout.left40, nil, nil })
+    table.insert(windowLayout, { "kitty", nil, screen, layout.right60, nil, nil })
+    slackApp:hide()
+    lastVisibleApp = "kitty"
   elseif activeAppName == "Slack" then
     table.insert(windowLayout, { "Arc", nil, screen, layout.left60, nil, nil })
     table.insert(windowLayout, { "Slack", nil, screen, layout.right40, nil, nil })
-  else
-    table.insert(windowLayout, { "Arc", nil, screen, layout.left40, nil, nil })
-    table.insert(windowLayout, { "kitty", nil, screen, layout.right60, nil, nil })
+    kittyApp:hide()
+    lastVisibleApp = "Slack"
   end
   hs.layout.apply(windowLayout)
-  local arcApp = hs.application.find("Arc")
-  local kittyApp = hs.application.find("kitty")
-  local slackApp = hs.application.find("Slack")
-  if arcApp then
-    arcApp:unhide()
-  end
-  if activeAppName == "Slack" then
-    if slackApp then
-      slackApp:unhide()
-    end
-    if kittyApp then
-      kittyApp:hide()
-    end
-    lastVisibleApp = "Slack"
-  elseif activeAppName == "kitty" then
-    if kittyApp then
-      kittyApp:unhide()
-    end
-    if slackApp then
-      slackApp:hide()
-    end
-    lastVisibleApp = "kitty"
-  else
-    if kittyApp and lastVisibleApp == "kitty" then
-      kittyApp:unhide()
-    end
-    if slackApp and lastVisibleApp == "Slack" then
-      slackApp:unhide()
-    end
-    if lastVisibleApp ~= "kitty" and lastVisibleApp ~= "Slack" then
-      if kittyApp then
-        kittyApp:unhide()
-        lastVisibleApp = "kitty"
-      end
-    end
-  end
 end
+
 local function arrangeActiveWindow()
   local activeApp = hs.application.frontmostApplication()
   local activeAppName = activeApp:name()
@@ -82,9 +54,8 @@ end
 appWatcher = hs.application.watcher.new(applicationWatcher)
 appWatcher:start()
 
-
-hs.hotkey.bind({"cmd", "alt", "ctrl"}, "R", function()
-    hs.reload()
+hs.hotkey.bind({ "cmd", "alt", "ctrl" }, "R", function()
+  hs.reload()
 end)
 
 hs.alert.show("Hammerspoon config loaded")
