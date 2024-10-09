@@ -26,7 +26,7 @@ local layout = {
 }
 
 local watchedApps = { "Arc", "kitty", "Slack" }
-local lastVisibleApp = "kitty"
+local lastVisibleApp = ""
 
 local function arrangeAndToggleApps(activeAppName)
   local screen = hs.screen.primaryScreen()
@@ -38,17 +38,19 @@ local function arrangeAndToggleApps(activeAppName)
     table.insert(windowLayout, { "Arc", nil, screen, layout.left70, nil, nil })
     table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
   elseif activeAppName == "kitty" then
+    kittyApp:unhide()
     table.insert(windowLayout, { "Arc", nil, screen, layout.left40, nil, nil })
     table.insert(windowLayout, { "kitty", nil, screen, layout.right60, nil, nil })
     slackApp:hide()
-    lastVisibleApp = "kitty"
   elseif activeAppName == "Slack" then
+    slackApp:unhide()
     table.insert(windowLayout, { "Arc", nil, screen, layout.left60, nil, nil })
     table.insert(windowLayout, { "Slack", nil, screen, layout.right40, nil, nil })
-    table.insert(windowLayout, { "kitty", nil, screen, layout.right40, nil, nil })
-    lastVisibleApp = "Slack"
+    kittyApp:hide()
   end
+
   hs.layout.apply(windowLayout)
+  lastVisibleApp = activeAppName
 end
 
 local function arrangeActiveWindow()
