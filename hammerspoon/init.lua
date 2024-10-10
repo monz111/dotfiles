@@ -35,11 +35,6 @@ local function arrangeAndToggleApps(activeAppName)
   local slackApp = hs.application.find("Slack")
 
   if activeAppName == "Arc" then
-    if lastVisibleApp == "kitty" then
-      kittyApp:unhide()
-    elseif lastVisibleApp == "Slack" then
-      slackApp:unhide()
-    end
     table.insert(windowLayout, { "Arc", nil, screen, layout.left70, nil, nil })
     table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
   elseif activeAppName == "kitty" then
