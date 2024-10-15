@@ -8,9 +8,9 @@ local function applyMargin(rect, isMain)
   local adjustedMargin = isMain and margin or (2 * margin)
   return {
     x = rect.x + margin / screenFrame.w,
-    y = rect.y + margin / screenFrame.h,
+    y = rect.y + (2.5 * margin) / screenFrame.h,
     w = rect.w - adjustedMargin / screenFrame.w,
-    h = rect.h - (2 * margin) / screenFrame.h,
+    h = rect.h - (3.5 * margin) / screenFrame.h,
   }
 end
 
