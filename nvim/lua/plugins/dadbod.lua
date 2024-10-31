@@ -3,7 +3,6 @@ local M = {
   dependencies = {
     { "tpope/vim-dadbod", lazy = true },
     { "pbogut/vim-dadbod-ssh", lazy = true },
-    { 'kristijanhusak/vim-dadbod-completion', ft = { 'sql', 'mysql', 'plsql' }, lazy = true },
   },
 }
 
@@ -21,6 +20,7 @@ function M.config()
   -- vim.api.nvim_set_hl(0, "NotificationWarning", { fg = "#f1c40f", bg = "NONE" })
   -- vim.api.nvim_set_hl(0, "NotificationError", { fg = "#c0392b", bg = "NONE" })
   -- vim.g.db_ui_notification_width = 100
+  vim.opt.previewheight = 40
 
   -- icon
   vim.g.db_ui_show_database_icon = 1
