@@ -1,14 +1,14 @@
 local M = {
   "nvim-telescope/telescope.nvim",
   dependencies = {
-    {"nvim-telescope/telescope-fzf-native.nvim", build = "make", lazy = true},
-    {'nvim-lua/plenary.nvim'},
-  }
+    { "nvim-telescope/telescope-fzf-native.nvim", build = "make", lazy = true },
+    { "nvim-lua/plenary.nvim" },
+  },
 }
 
 function M.config()
   local wk = require "which-key"
-  wk.add({
+  wk.add {
     { "<leader>fb", "<cmd>Telescope git_branches<cr>", desc = "Checkout branch" },
     { "<leader>fc", "<cmd>Telescope colorscheme<cr>", desc = "Colorscheme" },
     { "<leader>ff", "<cmd>Telescope find_files<cr>", desc = "Find files" },
@@ -17,20 +17,20 @@ function M.config()
     { "<leader>fp", "<cmd>lua require('telescope').extensions.projects.projects()<cr>", desc = "Projects" },
     { "<leader>fr", "<cmd>Telescope oldfiles<cr>", desc = "Recent File" },
     { "<leader>fw", "<cmd>Telescope live_grep<cr>", desc = "Find Text" },
-  })
+  }
 
   local icons = require "icons"
+  local telescope = require "telescope"
   local actions = require "telescope.actions"
 
-
-  require("telescope").setup {
+  telescope.setup {
     defaults = {
       prompt_prefix = icons.ui.Telescope .. " ",
       selection_caret = icons.ui.Forward .. " ",
       entry_prefix = "   ",
       initial_mode = "insert",
       selection_strategy = "reset",
-      path_display = { "smart" },
+      path_display = { "filename_first" },
       color_devicons = true,
       vimgrep_arguments = {
         "rg",
@@ -48,7 +48,6 @@ function M.config()
         i = {
           ["<C-n>"] = actions.cycle_history_next,
           ["<C-p>"] = actions.cycle_history_prev,
-
           ["<C-j>"] = actions.move_selection_next,
           ["<C-k>"] = actions.move_selection_previous,
         },
@@ -126,6 +125,7 @@ function M.config()
       },
     },
   }
-  end
+  telescope.load_extension "fzf"
+end
 
 return M
