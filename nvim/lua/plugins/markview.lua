@@ -1,10 +1,9 @@
-local M = {
-  "OXY2DEV/markview.nvim",
-  lazy = false,
-  dependencies = {
-    "nvim-treesitter/nvim-treesitter",
-    "nvim-tree/nvim-web-devicons",
-  },
+local M ={
+  'MeanderingProgrammer/render-markdown.nvim',
+  dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+  ---@module 'render-markdown'
+  ---@type render.md.UserConfig
+  opts = {},
 }
 
 return M
