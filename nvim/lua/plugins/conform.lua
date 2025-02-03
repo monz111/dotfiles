@@ -15,7 +15,7 @@ function M.config()
       jsonc = { "biome" },
       javascriptreact = { "biome" },
       typescriptreact = { "prettier" },
-      php = { { "intelephense", "prettier" } },
+      php = { "php_cs_fixer" },
       markdown = { { "prettierd", "prettier" } },
       html = { "htmlbeautifier" },
       bash = { "beautysh" },

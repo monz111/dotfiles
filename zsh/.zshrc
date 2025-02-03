@@ -79,3 +79,4 @@ export FZF_DEFAULT_OPTS=" \
 
 #sesh session-list
 alias sl="sesh list -c -z | fzf-tmux"
+export PATH="/opt/homebrew/opt/python@3.9/bin:$PATH"

@@ -25,7 +25,7 @@ local layout = {
   right40 = applyMargin({ x = 0.6, y = 0, w = 0.4, h = 1 }),
 }
 
-local watchedApps = { "Arc", "kitty", "Slack" }
+local watchedApps = { "Zen Browser", "kitty", "Slack" }
 local lastVisibleApp = ""
 
 local function arrangeAndToggleApps(activeAppName)
@@ -34,17 +34,17 @@ local function arrangeAndToggleApps(activeAppName)
   local kittyApp = hs.application.find("kitty")
   local slackApp = hs.application.find("Slack")
 
-  if activeAppName == "Arc" and (lastVisibleApp == "kitty" or lastVisibleApp == "Slack") then
-    table.insert(windowLayout, { "Arc", nil, screen, layout.left70, nil, nil })
+  if activeAppName == "Zen Browser" and (lastVisibleApp == "kitty" or lastVisibleApp == "Slack") then
+    table.insert(windowLayout, { "Zen Browser", nil, screen, layout.left70, nil, nil })
     table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
   elseif activeAppName == "kitty" then
     kittyApp:unhide()
-    table.insert(windowLayout, { "Arc", nil, screen, layout.left40, nil, nil })
+    table.insert(windowLayout, { "Zen Browser", nil, screen, layout.left40, nil, nil })
     table.insert(windowLayout, { "kitty", nil, screen, layout.right60, nil, nil })
     slackApp:hide()
   elseif activeAppName == "Slack" then
     slackApp:unhide()
-    table.insert(windowLayout, { "Arc", nil, screen, layout.left60, nil, nil })
+    table.insert(windowLayout, { "Zen Browser", nil, screen, layout.left60, nil, nil })
     table.insert(windowLayout, { "Slack", nil, screen, layout.right40, nil, nil })
     kittyApp:hide()
   end
