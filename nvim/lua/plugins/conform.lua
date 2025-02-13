@@ -35,13 +35,20 @@ function M.config()
         prepend_args = { "--indent-type", "Spaces", "--indent-width", "2" },
       },
       biome = {
-        args = {
-          "format",
-          "--write",
-          ("--config-path=" .. os.getenv "HOME" .. "/dotfiles/biome/"),
-          "--stdin-file-path",
-          "$FILENAME",
-        },
+        args = function(ctx)
+          local config_file = vim.fs.find({ "biome.json", ".biomerc.json" }, { upward = true, path = ctx.dirname })[1]
+          local config_path = config_file and vim.fn.fnamemodify(config_file, ":p:h")
+            or (os.getenv "HOME" .. "/dotfiles/biome")
+          local file_path = ctx.filename or "stdin.ts"
+
+          return {
+            "format",
+            "--write",
+            "--config-path=" .. config_path,
+            "--stdin-file-path",
+            file_path,
+          }
+        end,
       },
     },
   }
