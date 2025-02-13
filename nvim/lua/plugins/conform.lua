@@ -11,7 +11,7 @@ function M.config()
       lua = { "stylua" },
       javascript = { "biome" },
       typescript = { "biome" },
-      json = { "biome" },
+      json = { "jq" },
       jsonc = { "biome" },
       javascriptreact = { "biome" },
       typescriptreact = { "prettier" },
