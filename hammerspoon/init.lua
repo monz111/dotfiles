@@ -84,7 +84,7 @@ eventtapWatcher = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(ev
   
   if key == "escape" then
     local screenFrame = hs.screen.primaryScreen():frame()
-    hs.mouse.absolutePosition({x = 0, y = screenFrame.h / 2})
+    hs.mouse.absolutePosition({x = screenFrame.w / 2, y = screenFrame.h})
     
     return false
   end
