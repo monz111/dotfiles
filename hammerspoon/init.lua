@@ -8,9 +8,9 @@ local function applyMargin(rect, isMain)
   local adjustedMargin = isMain and margin or (2 * margin)
   return {
     x = rect.x + margin / screenFrame.w,
-    y = rect.y + (2.5 * margin) / screenFrame.h,
+    y = rect.y + (2 * margin) / screenFrame.h,
     w = rect.w - adjustedMargin / screenFrame.w,
-    h = rect.h - (3.5 * margin) / screenFrame.h,
+    h = rect.h - (2.6 * margin) / screenFrame.h,
   }
 end
 
@@ -25,28 +25,33 @@ local layout = {
   right40 = applyMargin({ x = 0.6, y = 0, w = 0.4, h = 1 }),
 }
 
-local watchedApps = { "Zen Browser", "kitty", "Slack" }
+local apps = {
+  browser = "Zen Browser",
+  terminal = "kitty",
+  chat = "Slack",
+}
+local watchedApps = { apps.browser, apps.terminal, apps.chat }
 local lastVisibleApp = ""
 
 local function arrangeAndToggleApps(activeAppName)
-  local screen = hs.screen.primaryScreen()
   local windowLayout = {}
-  local kittyApp = hs.application.find("kitty")
-  local slackApp = hs.application.find("Slack")
+  local screen = hs.screen.primaryScreen()
+  local terminalApp = hs.application.find("kitty")
+  local chatApp = hs.application.find("Slack")
 
-  if activeAppName == "Zen Browser" and (lastVisibleApp == "kitty" or lastVisibleApp == "Slack") then
-    table.insert(windowLayout, { "Zen Browser", nil, screen, layout.left70, nil, nil })
+  if activeAppName == apps.browser and (lastVisibleApp == apps.terminal or lastVisibleApp == apps.chat) then
+    table.insert(windowLayout, { apps.browser, nil, screen, layout.left70, nil, nil })
     table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
-  elseif activeAppName == "kitty" then
-    kittyApp:unhide()
-    table.insert(windowLayout, { "Zen Browser", nil, screen, layout.left40, nil, nil })
-    table.insert(windowLayout, { "kitty", nil, screen, layout.right60, nil, nil })
-    slackApp:hide()
-  elseif activeAppName == "Slack" then
-    slackApp:unhide()
-    table.insert(windowLayout, { "Zen Browser", nil, screen, layout.left60, nil, nil })
-    table.insert(windowLayout, { "Slack", nil, screen, layout.right40, nil, nil })
-    kittyApp:hide()
+  elseif activeAppName == apps.terminal then
+    chatApp:hide()
+    terminalApp:unhide()
+    table.insert(windowLayout, { apps.browser, nil, screen, layout.left40, nil, nil })
+    table.insert(windowLayout, { apps.terminal, nil, screen, layout.right60, nil, nil })
+  elseif activeAppName == apps.chat then
+    terminalApp:hide()
+    chatApp:unhide()
+    table.insert(windowLayout, { apps.browser, nil, screen, layout.left60, nil, nil })
+    table.insert(windowLayout, { apps.chat, nil, screen, layout.right40, nil, nil })
   end
 
   hs.layout.apply(windowLayout)
