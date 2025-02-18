@@ -76,19 +76,19 @@ end)
 
 hs.alert.show("Hammerspoon config loaded")
 
--- Watches for the ESC key press and moves the mouse cursor to the left center of the screen  
--- Ensures the default ESC behavior is not blocked  
--- Uses hs.eventtap to capture key events without interfering with system shortcuts  
-eventtapWatcher = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
+-- Watches for the ESC key press and moves the mouse cursor to the left center of the screen
+-- Ensures the default ESC behavior is not blocked
+-- Uses hs.eventtap to capture key events without interfering with system shortcuts
+eventtapWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(event)
   local key = hs.keycodes.map[event:getKeyCode()]
-  
+
   if key == "escape" then
     local screenFrame = hs.screen.primaryScreen():frame()
-    hs.mouse.absolutePosition({x = screenFrame.w / 2, y = screenFrame.h})
-    
+    hs.mouse.absolutePosition({ x = screenFrame.w / 2, y = screenFrame.h })
+
     return false
   end
-  
+
   return false
 end)
 
