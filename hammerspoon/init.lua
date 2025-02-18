@@ -1,4 +1,4 @@
-hs.window.animationDuration = 0
+hs.window.animationDuration = 0.1
 
 local margin = 20
 local screen = hs.screen.primaryScreen()
@@ -36,8 +36,8 @@ local lastVisibleApp = ""
 local function arrangeAndToggleApps(activeAppName)
   local windowLayout = {}
   local screen = hs.screen.primaryScreen()
-  local terminalApp = hs.application.find("kitty")
-  local chatApp = hs.application.find("Slack")
+  local terminalApp = hs.application.find(apps.terminal)
+  local chatApp = hs.application.find(apps.chat)
 
   if activeAppName == apps.browser and (lastVisibleApp == apps.terminal or lastVisibleApp == apps.chat) then
     table.insert(windowLayout, { apps.browser, nil, screen, layout.left70, nil, nil })
