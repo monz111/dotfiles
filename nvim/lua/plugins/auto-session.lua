@@ -8,6 +8,7 @@ function M.config()
     auto_session_suppress_dirr = { "~/", "~/Downloads", "/", "~/Projects" },
     auto_session_root_dir = vim.fn.stdpath "data" .. "/sessions/",
     auto_session_use_git_branch = true,
+    auto_session_suppress_opts = { "relativenumber" },
     auto_save_enabled = true,
     auto_restore_enabled = true,
     session_lens = {

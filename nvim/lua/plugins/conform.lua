@@ -13,7 +13,7 @@ function M.config()
       typescript = { "biome" },
       json = { "jq" },
       jsonc = { "biome" },
-      javascriptreact = { "biome" },
+      javascriptreact = { "prettierd" },
       typescriptreact = { "prettier" },
       php = { "php_cs_fixer" },
       markdown = { { "prettierd", "prettier" } },

@@ -26,7 +26,7 @@ local layout = {
 }
 
 local apps = {
-  browser = "Zen Browser",
+  browser = "Zen",
   terminal = "kitty",
   chat = "Slack",
 }
