@@ -8,9 +8,9 @@ local function applyMargin(rect, isMain)
   local adjustedMargin = isMain and margin or (2 * margin)
   return {
     x = rect.x + margin / screenFrame.w,
-    y = rect.y + (2 * margin) / screenFrame.h,
+    y = rect.y + (1 * margin) / screenFrame.h,
     w = rect.w - adjustedMargin / screenFrame.w,
-    h = rect.h - (2.6 * margin) / screenFrame.h,
+    h = rect.h - (2 * margin) / screenFrame.h,
   }
 end
 
@@ -89,7 +89,7 @@ eventtapWatcher = hs.eventtap.new({ hs.eventtap.event.types.keyDown }, function(
 
   if key == "escape" then
     local screenFrame = hs.screen.primaryScreen():frame()
-    hs.mouse.absolutePosition({ x = screenFrame.w / 2, y = screenFrame.h })
+    hs.mouse.absolutePosition({ x = screenFrame.w / 2, y = screenFrame.h + 60 })
 
     return false
   end
