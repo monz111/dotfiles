@@ -1,13 +1,13 @@
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
     "logo": {
-        "type": "raw",
-        "source": "image.bin",
+        "type": "kitty-icat",
+        "source": "~/dotfiles/fastfetch/catppuccin.png",
         "height": 16,
         "width": 22,
         "padding": {
             "top": 4,
-           "left": 10
+           "left": 1
         }
     },
     "modules": [
@@ -19,7 +19,7 @@
         },
         {
             "type": "title",
-            "key": " PC",
+            "key": "┌ ┌ PC",
             "keyColor": "green"
         },
         {
@@ -52,7 +52,7 @@
         },
         {
             "type": "os",
-            "key": " OS",
+            "key": "┌ ┌ OS",
             "keyColor": "yellow"
         },
         {
@@ -84,7 +84,7 @@
         "break",
         {
             "type": "de",
-            "key": " DE",
+            "key": "┌ ┌ DE",
             "keyColor": "blue"
         },
         {
