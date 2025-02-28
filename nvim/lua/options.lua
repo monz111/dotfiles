@@ -71,3 +71,10 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = "php",
   command = "setlocal shiftwidth=4 softtabstop=4 expandtab tabstop=2",
 })
+vim.filetype.add {
+  pattern = {
+    [".env"] = "sh",
+    [".env.*"] = "sh",
+    ["*.env"] = "sh",
+  },
+}
