@@ -27,7 +27,7 @@ local layout = {
 
 local apps = {
   browser = "Zen",
-  terminal = "kitty",
+  terminal = "Ghostty",
   chat = "Slack",
 }
 local watchedApps = { apps.browser, apps.terminal, apps.chat }
