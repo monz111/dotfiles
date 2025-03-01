@@ -1,0 +1,18 @@
+theme = catppuccin-mocha
+font-family = "Geist Mono"
+font-family-italic = "Gilroy"
+font-size = 15
+font-feature = -liga
+
+adjust-cell-width = 0%
+adjust-cell-height = 0%
+
+window-padding-color = background
+background-opacity = 0.6
+background-blur-radius = 50
+
+mouse-hide-while-typing = true
+window-decoration = false
+macos-option-as-alt = true
+window-save-state = always
+font-thicken = true
