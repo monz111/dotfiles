@@ -7,7 +7,7 @@ M.config = function()
 
   local wk = require "which-key"
   wk.add {
-    { "<leader>r", "<cmd>GrugFar<CR>", desc = "Search and Replace" },
+    { "<leader>r", "<cmd>lua require('grug-far').open({ prefills = { search = vim.fn.expand('<cword>') } })<CR>", desc = "Search and Replace" },
   }
 end
 
