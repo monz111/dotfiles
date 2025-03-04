@@ -1,18 +1,21 @@
 theme = catppuccin-mocha
 font-family = "Geist Mono"
-font-family-italic = "Gilroy"
-font-size = 15
+font-family-italic = "JetBrainsMono Nerd Font"
+font-size = 19
 font-feature = -liga
 
 adjust-cell-width = 0%
-adjust-cell-height = 0%
+adjust-cell-height = 40%
 
 window-padding-color = background
-background-opacity = 0.6
-background-blur-radius = 50
+background-opacity = 0.9
+background-blur-radius = 10
 
 mouse-hide-while-typing = true
 window-decoration = false
 macos-option-as-alt = true
 window-save-state = always
 font-thicken = true
+
+custom-shader = "./shaders/bloom25.glsl"
+custom-shader = "./shaders/in-game-crt.glsl"
