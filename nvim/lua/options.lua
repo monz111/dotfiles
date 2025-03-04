@@ -78,3 +78,7 @@ vim.filetype.add {
     ["*.env"] = "sh",
   },
 }
+vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+  pattern = "Config",
+  command = "set filetype=toml"
+})

@@ -21,6 +21,7 @@ function M.config()
       "rust",
       "typescript",
       "javascript",
+      "toml",
     },
     highlight = { enable = true },
     indent = { enable = true },
