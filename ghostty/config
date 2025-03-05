@@ -10,7 +10,7 @@ font-thicken-strength = 255
 adjust-cell-width = 0%
 adjust-cell-height = 40%
 
-background-opacity = 0.6
+background-opacity = 0.1
 background-blur-radius = 20
 
 window-padding-color = background
@@ -22,4 +22,4 @@ cursor-invert-fg-bg = true
 macos-option-as-alt = true
 
 custom-shader = "./shaders/bloom25.glsl"
-#custom-shader = "./shaders/in-game-crt.glsl"
+custom-shader = "./shaders/in-game-crt.glsl"
