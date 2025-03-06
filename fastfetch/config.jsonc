@@ -1,123 +1,80 @@
 {
     "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-    "logo": {
-        "type": "kitty-icat",
-        "source": "~/dotfiles/fastfetch/catppuccin.png",
-        "height": 16,
-        "width": 22,
-        "padding": {
-            "top": 4,
-           "left": 1
-        }
+    "logo": null,
+    "display": {
+        "separator": ">  ",
+        "color": {
+            "separator": "red"
+        },
+        "constants": [
+            "───────────────────────────────────────────────────────────────────────────",
+            "│\u001b[75C│\u001b[75D"
+        ]
     },
     "modules": [
-        "break",
         {
-            "type": "custom",
-            "format": "┌────────────────────── Hardware ──────────────────────┐",
-            "outputColor": "red"
+            "format": "{#1}{#keys}╭{$1}╮\u001b[76D {user-name-colored}{at-symbol-colored}{host-name-colored} 🖥  ",
+            "type": "title"
         },
         {
-            "type": "title",
-            "key": "┌ ┌ PC",
-            "keyColor": "green"
+            "key": "{$2}{#31} kernel   ",
+            "type": "kernel"
         },
         {
-            "type": "cpu",
-            "key": "│ ├󰍛 CPU",
-            "showPeCoreCount": true,
-            "format": "{1}",
-            "keyColor": "green"
+            "key": "{$2}{#32}󰅐 uptime   ",
+            "type": "uptime"
         },
         {
-            "type": "gpu",
-            "key": "│ ├󰍛 GPU",
-            "keyColor": "green"
+            "key": "{$2}{#33}{icon} distro   ",
+            "type": "os"
         },
         {
-            "type": "memory",
-            "key": "└ └󰍛 Memory",
-            "keyColor": "green"
+            "key": "{$2}{#34}󰇄 desktop  ",
+            "type": "de"
         },
         {
-            "type": "custom",
-            "format": "└──────────────────────────────────────────────────────┘",
-            "outputColor": "red"
-        },
-        "break",
-        {
-            "type": "custom",
-            "format": "┌────────────────────── Software ──────────────────────┐",
-            "outputColor": "red"
+            "key": "{$2}{#35} term     ",
+            "type": "terminal"
         },
         {
-            "type": "os",
-            "key": "┌ ┌ OS",
-            "keyColor": "yellow"
+            "key": "{$2}{#36} shell    ",
+            "type": "shell"
         },
         {
-            "type": "kernel",
-            "key": "│ ├ Kernel",
-            "keyColor": "yellow"
+            "key": "{$2}{#35}󰍛 cpu      ",
+            "type": "cpu"
         },
         {
-            "type": "packages",
-            "key": "│ ├󰏖 Packages",
-            "keyColor": "yellow"
+            "key": "{$2}{#34}󰍛 gpu      ",
+            "type": "gpu"
         },
         {
-            "type": "shell",
-            "key": "│ ├ Shell",
-            "keyColor": "yellow"
+            "key": "{$2}{#33}󰉉 disk     ",
+            "type": "disk",
+            "folders": "/"
         },
         {
-            "type": "command",
-            "key": "│ ├ OS Age",
-            "keyColor": "yellow",
-            "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+            "key": "{$2}{#32} memory   ",
+            "type": "memory"
         },
         {
-            "type": "uptime",
-            "key": "└ └ Uptime",
-            "keyColor": "yellow"
-        },
-        "break",
-        {
-            "type": "de",
-            "key": "┌ ┌ DE",
-            "keyColor": "blue"
+            "key": "{$2}{#31}󰩟 network  ",
+            "type": "localip",
+            "format": "{ipv4} ({ifname})"
         },
         {
-            "type": "lm",
-            "key": "│ ├ LM",
-            "keyColor": "blue"
+            "format": "{#1}{#keys}├{$1}┤",
+            "type": "custom"
         },
         {
-            "type": "wm",
-            "key": "│ ├ WM",
-            "keyColor": "blue"
+            "key": "{$2}{#39} colors   ",
+            "type": "colors",
+            "symbol": "circle"
         },
         {
-            "type": "gpu",
-            "key": "│ ├󰍛 GPU Driver",
-            "format": "{3}",
-            "keyColor": "blue"
-        },
-        {
-            "type": "wmtheme",
-            "key": "└ └󰉼 Theme",
-            "keyColor": "blue"
-        },
-
-        {
-            "type": "custom",
-            "format": "└────────────────────────────────────────────────────┘",
-            "outputColor": "red"
-        },
-        {
-            "type": "custom",
-            "format": "               \u001b[90m  \u001b[31m  \u001b[32m  \u001b[33m  \u001b[34m  \u001b[35m  \u001b[36m  \u001b[37m "
-        },
-        "break"
+            "format": "{#1}{#keys}╰{$1}╯",
+            "type": "custom"
+        }
     ]
 }
+
