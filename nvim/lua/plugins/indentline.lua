@@ -9,9 +9,9 @@ local M = {
 function M.config()
   vim.opt.list = true
   vim.opt.listchars = {
-    space = "⋅",
-    eol = "",
+    -- space = "⋅",
     -- eol = "󱞱",
+    -- eol = "",
     tab = " ",
   }
   local highlight = {
@@ -24,7 +24,7 @@ function M.config()
 
   local hooks = require "ibl.hooks"
   hooks.register(hooks.type.HIGHLIGHT_SETUP, function()
-    vim.api.nvim_set_hl(0, "IndentBlanklineIndent1", { fg = "#4A4A4A" })
+    vim.api.nvim_set_hl(0, "IndentBlanklineIndent1", { fg = "#576574" })
     vim.api.nvim_set_hl(0, "IndentBlanklineIndent2", { fg = "#686868" })
     vim.api.nvim_set_hl(0, "IndentBlanklineIndent3", { fg = "#868686" })
     vim.api.nvim_set_hl(0, "IndentBlanklineIndent4", { fg = "#A4A4A4" })
@@ -32,8 +32,8 @@ function M.config()
   end)
 
   require("ibl").setup {
-    indent = { char = "│" },
-    scope = { enabled = true, show_start = false, highlight = highlight },
+    indent = { char = "" }, --│
+    scope = { enabled = false, show_start = false, highlight = highlight },
   }
 end
 

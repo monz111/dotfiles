@@ -34,6 +34,7 @@ function M.config()
         enabled = false,
       },
       treesitter = true,
+      treesitter_context = true,
       ufo = true,
       which_key = true,
       snacks = {
