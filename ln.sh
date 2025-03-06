@@ -11,3 +11,4 @@ ln -nfs ~/dotfiles/kitty/ ~/.config/kitty
 ln -nfs ~/dotfiles/hammerspoon/init.lua ~/.hammerspoon
 ln -nfs ~/dotfiles/sesh ~/.config/sesh
 ln -nfs ~/dotfiles/ghostty ~/.config/ghostty
+ln -nfs ~/dotfiles/lazygit ~/.config/lazygit

@@ -38,14 +38,13 @@ function M.config()
     show_keys = false,
     disable = {
       buftypes = {},
-      filetypes = { "TelescopePrompt" },
+      filetypes = { "" },
     },
   }
 
-  which_key.add({
-    { "<leader>p", "<cmd>lua require('telescope').extensions.projects.projects()<CR>", desc = "Projects"},
+  which_key.add {
     { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
-    { "<leader>v", "<cmd>vsplit<CR>", desc = "Split"},
+    { "<leader>v", "<cmd>vsplit<CR>", desc = "Split" },
     { "<leader>c", group = "Lab Code" },
     { "<leader>b", group = "Buffers" },
     { "<leader>s", group = "Sessions" },
@@ -56,8 +55,7 @@ function M.config()
     { "<leader>t", group = "Test" },
     { "<leader>w", group = "Window" },
     { "<leader>;", group = "Terminal" },
-  })
-
+  }
 end
 
 return M

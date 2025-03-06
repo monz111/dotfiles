@@ -29,6 +29,11 @@ function M.config()
       "toggleterm",
       "DressingSelect",
       "TelescopePrompt",
+      "snacks",
+      "snacks_dashboard",
+      "snacks_picker_input",
+      "snacks_picker_list",
+      "snacks_picker_preview",
     },
   }
 end

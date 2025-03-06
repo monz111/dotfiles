@@ -9,7 +9,7 @@ local M = {
       mc.addCursor "*"
     end)
     -- Delete the main cursor.
-    vim.keymap.set({ "n", "v" }, "<leader>x", mc.deleteCursor)
+    -- vim.keymap.set({ "n", "v" }, "<leader>x", mc.deleteCursor)
 
     vim.keymap.set("n", "<esc>", function()
       if not mc.cursorsEnabled() then

@@ -31,11 +31,15 @@ function M.config()
       notify = true,
       nvimtree = true,
       telescope = {
-        enabled = true,
+        enabled = false,
       },
       treesitter = true,
       ufo = true,
       which_key = true,
+      snacks = {
+        enabled = true,
+        indent_scope_color = "", -- catppuccin color (eg. `lavender`) Default: text
+      },
     },
   }
 
