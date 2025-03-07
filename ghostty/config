@@ -3,7 +3,7 @@ theme = catppuccin-frappe
 font-family = "Geist Mono"
 font-family-italic = "JetBrainsMono Nerd Font"
 font-size = 15
-font-feature = -feat
+font-feature = -dlig
 font-thicken = true
 font-thicken-strength = 255
 
