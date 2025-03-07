@@ -1,17 +1,17 @@
-theme = catppuccin-frappe
+theme = catppuccin-mocha
 
 font-family = "Geist Mono"
 font-family-italic = "JetBrainsMono Nerd Font"
-font-size = 15
-font-feature = -dlig
+font-size = 14
+font-feature = -dlig -feat
 font-thicken = true
 font-thicken-strength = 255
 
 adjust-cell-width = 0%
-adjust-cell-height = 20%
+adjust-cell-height = 10%
 
-background-opacity = 0.8
-background-blur-radius = 10
+background-opacity = 0.6
+background-blur-radius = 15
 
 window-padding-color = background
 window-decoration = false
