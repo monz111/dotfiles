@@ -46,13 +46,19 @@ function M.config()
 
   vim.cmd.colorscheme "catppuccin"
 
-  local keymap = vim.keymap.set
-  keymap("n", "<leader>tb", function()
-    local cat = require "catppuccin"
-    cat.options.transparent_background = not cat.options.transparent_background
-    cat.compile()
-    vim.cmd.colorscheme(vim.g.colors_name)
-  end)
+  local wk = require "which-key"
+  wk.add {
+    {
+      "<leader>tb",
+      function()
+        local cat = require "catppuccin"
+        cat.options.transparent_background = not cat.options.transparent_background
+        cat.compile()
+        vim.cmd.colorscheme(vim.g.colors_name)
+      end,
+      desc = "Change background to solid color",
+    },
+  }
 end
 
 return M

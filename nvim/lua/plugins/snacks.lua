@@ -22,7 +22,7 @@ local M = {
       desc = "Find Files",
     },
     {
-      "<leader>z",
+      "<leader>b",
       function()
         Snacks.picker.buffers {
           -- I always want my buffers picker to start in normal mode

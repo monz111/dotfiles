@@ -56,13 +56,21 @@ function M.config()
   vim.filetype.add {
     pattern = { [".*-query-[^%.]*"] = "sql" },
   }
-  vim.keymap.set({ "n", "v" }, "<leader>=", function()
-    conform.format {
-      lsp_fallback = true,
-      async = false,
-      timeout_ms = 1000,
-    }
-  end, { desc = "Format buffe" })
+
+  local wk = require "which-key"
+  wk.add {
+    {
+      "<leader>=",
+      function()
+        conform.format {
+          lsp_fallback = true,
+          async = false,
+          timeout_ms = 1000,
+        }
+      end,
+      desc = "Format buffer",
+    },
+  }
 end
 
 return M

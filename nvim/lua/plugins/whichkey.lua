@@ -48,6 +48,7 @@ function M.config()
     { "<leader>c", group = "Lab Code" },
     { "<leader>b", group = "Buffers" },
     { "<leader>d", group = "Debug" },
+    { "<leader>m", group = "MarkDown" },
     { "<leader>f", group = "Find" },
     { "<leader>g", group = "Git" },
     { "<leader>l", group = "LSP" },

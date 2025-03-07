@@ -9,7 +9,7 @@ function M.config()
   }
   local wk = require "which-key"
   wk.add {
-    { "<leader>m", "<cmd>TSJToggle<cr>", desc = "TreeSJ Toggle" },
+    { "<leader>z", "<cmd>TSJToggle<cr>", desc = "TreeSJ Toggle" },
   }
 end
 
