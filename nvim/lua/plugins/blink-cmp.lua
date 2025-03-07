@@ -55,11 +55,16 @@ function M.config()
       nerd_font_variant = "mono",
     },
     sources = {
-      default = { "lsp", "path", "snippets", "buffer", "dadbod" },
+      default = { "lsp", "path", "snippets", "buffer", "markdown", "dadbod" },
       per_filetype = {
         sql = { "snippets", "dadbod", "buffer" },
       },
       providers = {
+        markdown = {
+          name = "RenderMarkdown",
+          module = "render-markdown.integ.blink",
+          fallbacks = { "lsp" },
+        },
         dadbod = {
           name = "Dadbod",
           module = "vim_dadbod_completion.blink",
