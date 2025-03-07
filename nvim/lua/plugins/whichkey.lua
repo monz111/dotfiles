@@ -46,7 +46,6 @@ function M.config()
     { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
     { "<leader>v", "<cmd>vsplit<CR>", desc = "Split" },
     { "<leader>c", group = "Lab Code" },
-    { "<leader>b", group = "Buffers" },
     { "<leader>d", group = "Debug" },
     { "<leader>m", group = "MarkDown" },
     { "<leader>f", group = "Find" },
