@@ -4,7 +4,6 @@ local M = {
 
 function M.config()
   local conform = require "conform"
-  local wk = require "which-key"
 
   conform.setup {
     formatters_by_ft = {
@@ -16,7 +15,7 @@ function M.config()
       javascriptreact = { "prettierd" },
       typescriptreact = { "prettier" },
       php = { "php_cs_fixer" },
-      markdown = { { "prettierd", "prettier" } },
+      markdown = { "markdownlint" },
       html = { "htmlbeautifier" },
       bash = { "beautysh" },
       rust = { "rustfmt" },
@@ -57,19 +56,41 @@ function M.config()
     pattern = { [".*-query-[^%.]*"] = "sql" },
   }
 
+  -- fidget
+  local fidget = require "fidget"
+  local function format_with_fidget()
+    local format_args = { lsp_fallback = true, async = true, timeout_ms = 5000 }
+    local formatters = conform.list_formatters()
+    local fmt_names = {}
+
+    if not vim.tbl_isempty(formatters) then
+      fmt_names = vim.tbl_map(function(f)
+        return f.name
+      end, formatters)
+    elseif conform.will_fallback_lsp(format_args) then
+      fmt_names = { "lsp" }
+    else
+      vim.notify("No formatters available", vim.log.levels.WARN)
+      return
+    end
+
+    local fmt_info = "fmt: " .. table.concat(fmt_names, ", ")
+    local notif = fidget.notify("󰉼 " .. fmt_info, "info", { title = "Formatting", timeout = false })
+
+    conform.format(format_args, function(err)
+      if err then
+        fidget.notify("Format Error: " .. err, "error", { title = "Formatting" })
+        vim.notify("Format Error: " .. err, vim.log.levels.ERROR)
+      else
+        fidget.notify(" " .. fmt_info, "success", { title = "Formatting" })
+      end
+    end)
+  end
+
+  -- which-key
   local wk = require "which-key"
   wk.add {
-    {
-      "<leader>=",
-      function()
-        conform.format {
-          lsp_fallback = true,
-          async = false,
-          timeout_ms = 1000,
-        }
-      end,
-      desc = "Format buffer",
-    },
+    { "<leader>=", format_with_fidget, desc = "Formatting" },
   }
 end
 

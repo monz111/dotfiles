@@ -43,7 +43,28 @@ function M.config()
           padding = 0,
         },
       },
-      lualine_x = { { "filename", path = 3, file_status = false, color = { fg = "#888888" } } },
+      lualine_x = {
+        {
+          "diagnostics",
+          sources = { "nvim_lsp" },
+          symbols = { error = " ", warn = " ", info = " ", hint = " " },
+        },
+        {
+          function()
+            local ok, conform = pcall(require, "conform")
+            if not ok then
+              return ""
+            end
+            local filetype = vim.bo.filetype
+            local formatters = conform.formatters_by_ft[filetype] or {}
+
+            if vim.tbl_islist(formatters) and #formatters > 0 then
+              return "󰉼 " .. table.concat(formatters, ",")
+            end
+            return ""
+          end,
+        },
+      },
       lualine_y = {},
       lualine_z = {},
     },
