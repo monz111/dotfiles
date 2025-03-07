@@ -34,7 +34,7 @@ local M = {
           hidden = false,
           unloaded = true,
           current = true,
-          sort_lastused = true,
+          sort_lastused = false,
           win = {
             input = {
               keys = {
@@ -204,6 +204,8 @@ function M.config()
         },
       },
     },
+    scroll = { enabled = true },
+    animate = { enabled = true },
     previewers = {
       diff = {
         -- Use Neovim for previewing diffs (true) or use an external tool (false)

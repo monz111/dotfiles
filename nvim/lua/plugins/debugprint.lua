@@ -18,8 +18,8 @@ function M.config()
         variable_above_alwaysprompt = nil,
         textobj_below = nil,
         textobj_above = nil,
-        toggle_comment_debug_prints = "<leader>..",
-        delete_debug_prints = "<leader>...",
+        -- toggle_comment_debug_prints = "<leader>..",
+        -- delete_debug_prints = "<leader>...",
       },
       visual = {
         variable_below = "<leader>.",
