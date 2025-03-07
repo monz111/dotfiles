@@ -206,6 +206,9 @@ function M.config()
     },
     scroll = { enabled = true },
     animate = { enabled = true },
+    indent = {
+      enabled = true,
+    },
     previewers = {
       diff = {
         -- Use Neovim for previewing diffs (true) or use an external tool (false)
@@ -219,6 +222,7 @@ function M.config()
       },
     },
   }
+  vim.api.nvim_set_hl(0, "SnacksIndentScope", { fg = "#45475a" })
 end
 
 return M
