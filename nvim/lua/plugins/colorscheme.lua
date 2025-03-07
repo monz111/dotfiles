@@ -17,7 +17,8 @@ function M.config()
     transparent_background = true, -- disables setting the background color.
     integrations = {
       alpha = true,
-      cmp = true,
+      cmp = false,
+      blink_cmp = true,
       fidget = true,
       gitsigns = true,
       harpoon = true,

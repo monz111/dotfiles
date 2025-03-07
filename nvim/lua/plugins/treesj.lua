@@ -1,6 +1,6 @@
 local M = {
   "Wansmer/treesj",
-  dependencies = { "vim-treesitter/nvim-treesitter" },
+  dependencies = { "nvim-treesitter/nvim-treesitter" },
 }
 
 function M.config()
