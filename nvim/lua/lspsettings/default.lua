@@ -1,41 +1,35 @@
 local M = {}
-
-local function lsp_keymaps(bufnr)
-  local keymap = vim.api.nvim_buf_set_keymap
-  keymap(bufnr, "n", "gD", "<cmd>lua vim.lsp.buf.declaration()<CR>",
-    { noremap = true, silent = true, desc = "declaration" })
-  keymap(bufnr, "n", "gd", "<cmd>lua vim.lsp.buf.definition()<CR>",
-    { noremap = true, silent = true, desc = "definition" })
-  keymap(bufnr, "n", "gk", "<cmd>lua vim.lsp.buf.hover()<CR>", { noremap = true, silent = true, desc = "hover" })
-  keymap(bufnr, "n", "gI", "<cmd>lua vim.lsp.buf.implementation()<CR>",
-    { noremap = true, silent = true, desc = "implementation" })
-  keymap(bufnr, "n", "gr", "<cmd>lua vim.lsp.buf.references()<CR>",
-    { noremap = true, silent = true, desc = "references" })
-  keymap(bufnr, "n", "gl", "<cmd>lua vim.diagnostic.open_float()<CR>",
-    { noremap = true, silent = true, desc = "open_float" })
-end
+local icons = require "icons"
 
 local function YankDiagnostic()
   local diagnostics = vim.diagnostic.get(0, { lnum = vim.fn.line "." - 1 })
   if #diagnostics > 0 then
     local message = diagnostics[1].message
     vim.fn.setreg("+", message)
-    print("Yanked diagnostic: " .. message)
+    print(icons.ui.Clipboard .. message)
   else
-    print "No diagnostic found on this line."
+    print "LSP: No diagnostic found on this line."
   end
 end
 
 local wk = require "which-key"
 wk.add {
-  { "<leader>yd", YankDiagnostic,                             desc = "Yank Diagnostic" },
-  { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>",   desc = "Code Action" },
-  { "<leader>li", "<cmd>LspInfo<cr>",                         desc = "Info" },
-  { "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>",  desc = "Next Diagnostic" },
-  { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>",  desc = "Prev Diagnostic" },
-  { "<leader>ll", "<cmd>lua vim.lsp.codelens.run()<cr>",      desc = "CodeLens Action" },
-  { "<leader>lq", "<cmd>lua vim.diagnostic.setloclist()<cr>", desc = "Quickfix" },
-  { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>",        desc = "Rename" },
+  { "g",          "",                                          desc = "LSP" },
+  { "gg",         "gg",                                        desc = "Move Top" },
+  { "gd",         "<cmd>lua vim.lsp.buf.definition()<CR>",     desc = "Go to Definition" },
+  { "gD",         "<cmd>lua vim.lsp.buf.declaration()<CR>",    desc = "Go to Declaration" },
+  { "gk",         "<cmd>lua vim.lsp.buf.hover()<CR>",          desc = "Show Hover" },
+  { "gl",         "<cmd>lua vim.diagnostic.open_float()<CR>",  desc = "Show Diagnostics" },
+  { "gr",         "<cmd>lua vim.lsp.buf.references()<CR>",     desc = "Find References" },
+  { "gI",         "<cmd>lua vim.lsp.buf.implementation()<CR>", desc = "Go to Implementation" },
+  { "gq",         "<cmd>lua vim.diagnostic.setloclist()<cr>",  desc = "Quickfix" },
+  { "gy",         YankDiagnostic,                              desc = "Yank Diagnostic" },
+  { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>",    desc = "Code Action" },
+  { "<leader>li", "<cmd>LspInfo<cr>",                          desc = "Info" },
+  { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>",         desc = "Rename" },
+  { "<leader>lj", "<cmd>lua vim.diagnostic.goto_next()<cr>",   desc = "Next Diagnostic" },
+  { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>",   desc = "Prev Diagnostic" },
+  { "<leader>ll", "<cmd>lua vim.lsp.codelens.run()<cr>",       desc = "CodeLens Action" },
   {
     "<leader>lf",
     "<cmd>lua vim.lsp.buf.format({async = true, filter = function(client) return client.name ~= 'typescript-tools' end})<cr>",
@@ -43,7 +37,6 @@ wk.add {
   },
 }
 
-local icons = require "icons"
 local default_diagnostic_config = {
   signs = {
     active = true,
@@ -84,7 +77,7 @@ end
 
 M.on_attach = function(client, bufnr)
   print "on_attach"
-  lsp_keymaps(bufnr)
+  -- lsp_keymaps(bufnr)
 
   if client.supports_method "textDocument/inlayHint" then
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })

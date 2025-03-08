@@ -134,6 +134,7 @@ return {
     Resize = "󰩨",
     Format = "󰉼 ",
     Modified = "󰣕 ",
+    Clipboard = " ",
   },
   diagnostics = {
     BoldError = " ",
