@@ -22,6 +22,7 @@ function M.config()
     "denols",
     "intelephense",
     "marksman",
+    "eslint",
   }
   mason_lspconfig.setup { ensure_installed = active_server }
 
