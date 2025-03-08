@@ -16,6 +16,11 @@ function M.config()
       section_separators = { left = "", right = "" },
       component_separators = { left = "", right = "" },
       ignore_focus = { "NvimTree" },
+      refresh = {
+        statusline = 100,
+        tabline = 100,
+        winbar = 100,
+      },
     },
     sections = {
       lualine_a = {},
