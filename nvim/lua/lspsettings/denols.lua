@@ -1,5 +1,6 @@
 return {
-  setup = {
+  root_dir = require("lspconfig").util.root_pattern("deno.json", "deno.jsonc"),
+  settings = {
     init_options = {
       lint = true,
       unstable = true,

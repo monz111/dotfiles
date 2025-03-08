@@ -48,7 +48,7 @@ function M.config()
         auto_show = true,
         auto_show_delay_ms = 0,
       },
-      ghost_text = { enabled = true },
+      ghost_text = { enabled = false },
     },
     appearance = {
       use_nvim_cmp_as_default = true,
