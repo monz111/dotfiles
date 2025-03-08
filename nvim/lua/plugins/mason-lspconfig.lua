@@ -45,11 +45,11 @@ function M.config()
       lspconfig.denols.setup {
         root_dir = lspconfig.util.root_pattern "deno.json",
         on_attach = function()
-          local active_clients = vim.lsp.get_active_clients()
+          local active_clients = vim.lsp.get_clients()
           for _, client in pairs(active_clients) do
             -- stop tsserver if denols is already active
             if client.name == "ts_ls" then
-              client.stop()
+              vim.cmd("LspStop ts_ls")
             end
           end
         end,

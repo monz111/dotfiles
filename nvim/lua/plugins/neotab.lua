@@ -6,9 +6,9 @@ local M = {
 function M.config()
   require("neotab").setup {
     tabkey = "<Tab>",
-    act_as_tab = true, -- fallback to tab, if `tabout` action is not available
-    behavior = "nested", ---@type ntab.behavior
-    pairs = { ---@type ntab.pair[]
+    act_as_tab = true,
+    behavior = "nested",
+    pairs = {
       { open = "(", close = ")" },
       { open = "[", close = "]" },
       { open = "{", close = "}" },
@@ -26,7 +26,7 @@ function M.config()
       },
       escape = {
         enabled = false,
-        triggers = {}, ---@type table<string, ntab.trigger>
+        triggers = {},
       },
     },
   }

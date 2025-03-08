@@ -15,7 +15,7 @@ function M.config()
       },
     },
     messages = {
-      enabled == true,
+      enabled = true,
       view = "notify",
     },
     cmdline = {

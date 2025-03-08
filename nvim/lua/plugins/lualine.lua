@@ -70,7 +70,7 @@ function M.config()
             end
 
             -- lsp
-            local buf_clients = vim.lsp.get_active_clients { bufnr = 0 }
+            local buf_clients = vim.lsp.get_clients { bufnr = 0 }
 
             local lsp_names = {}
             for _, client in pairs(buf_clients) do
@@ -81,7 +81,7 @@ function M.config()
             local filetype = vim.bo.filetype
             local formatters = conform.formatters_by_ft[filetype] or {}
 
-            if vim.tbl_islist(formatters) and #formatters > 0 then
+            if vim.islist(formatters) and #formatters > 0 then
               return "" .. lsp_name .. ":" .. table.concat(formatters, ",") .. ""
             end
 

@@ -1,63 +1,66 @@
 local M = {
   "folke/snacks.nvim",
   lazy = false,
-  keys = {
-    {
-      "<leader>fw",
-      function()
-        Snacks.picker.grep {
-          hidden = true,
-        }
-      end,
-      desc = "Find Text",
-    },
-    {
-      "<leader>ff",
-      function()
-        Snacks.picker.files {
-          finder = "files",
-          format = "file",
-          show_empty = true,
-          hidden = true,
-          supports_live = true,
-        }
-      end,
-      desc = "Find Files",
-    },
-    {
-      "<leader><leader>",
-      function()
-        Snacks.picker.buffers {
-          -- I always want my buffers picker to start in normal mode
-          on_show = function()
-            vim.cmd.stopinsert()
-          end,
-          finder = "buffers",
-          format = "buffer",
-          hidden = true,
-          unloaded = true,
-          current = true,
-          sort_lastused = false,
-          win = {
-            input = {
-              keys = {
-                ["d"] = "bufdelete",
+  keys = function()
+    local Snacks = require "snacks"
+    return {
+      {
+        "<leader>fw",
+        function()
+          Snacks.picker.grep {
+            hidden = true,
+          }
+        end,
+        desc = "Find Text",
+      },
+      {
+        "<leader>ff",
+        function()
+          Snacks.picker.files {
+            finder = "files",
+            format = "file",
+            show_empty = true,
+            hidden = true,
+            supports_live = true,
+          }
+        end,
+        desc = "Find Files",
+      },
+      {
+        "<leader><leader>",
+        function()
+          Snacks.picker.buffers {
+            -- I always want my buffers picker to start in normal mode
+            on_show = function()
+              vim.cmd.stopinsert()
+            end,
+            finder = "buffers",
+            format = "buffer",
+            hidden = true,
+            unloaded = true,
+            current = true,
+            sort_lastused = false,
+            win = {
+              input = {
+                keys = {
+                  ["d"] = "bufdelete",
+                },
               },
+              list = { keys = { ["d"] = "bufdelete" } },
             },
-            list = { keys = { ["d"] = "bufdelete" } },
-          },
-        }
-      end,
-      desc = "Buffers",
-    },
-    {
-      "<leader>gg",
-      function()
-        Snacks.lazygit()
-      end,
-      desc = "Lazygit",
-    },
-  },
+          }
+        end,
+        desc = "Buffers",
+      },
+      {
+        "<leader>gg",
+        function()
+          Snacks.lazygit()
+        end,
+        desc = "Lazygit",
+      },
+    }
+  end,
 }
 
 function M.config()

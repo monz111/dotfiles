@@ -31,6 +31,13 @@ wk.add {
   { "<leader>lk", "<cmd>lua vim.diagnostic.goto_prev()<cr>",   desc = "Prev Diagnostic" },
   { "<leader>ll", "<cmd>lua vim.lsp.codelens.run()<cr>",       desc = "CodeLens Action" },
   {
+    "<leader>lq",
+    function()
+      vim.diagnostic.setqflist { severity = { min = vim.diagnostic.severity.HINT } }
+    end,
+    desc = "CodeLens Action",
+  },
+  {
     "<leader>lf",
     "<cmd>lua vim.lsp.buf.format({async = true, filter = function(client) return client.name ~= 'typescript-tools' end})<cr>",
     desc = "Format",
@@ -77,7 +84,6 @@ end
 
 M.on_attach = function(client, bufnr)
   print "on_attach"
-  -- lsp_keymaps(bufnr)
 
   if client.supports_method "textDocument/inlayHint" then
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
