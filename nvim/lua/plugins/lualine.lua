@@ -3,10 +3,18 @@ local M = {
 }
 
 function M.config()
+  local icons = require "icons"
+  local custom_theme = require "lualine.themes.auto"
+  custom_theme.normal.b.bg = nil
+  custom_theme.command.b.bg = nil
+  custom_theme.insert.b.bg = nil
+  custom_theme.visual.b.bg = nil
+
   require("lualine").setup {
     options = {
-      component_separators = { left = "", right = "" },
+      theme = custom_theme,
       section_separators = { left = "", right = "" },
+      component_separators = { left = "", right = "" },
       ignore_focus = { "NvimTree" },
     },
     sections = {
@@ -17,7 +25,7 @@ function M.config()
           indicators = { " 1 ", " 2 ", " 3 ", " 4 " },
           active_indicators = { "[1]", "[2]", "[3]", "[4]" },
           _separator = "",
-          color = { fg = "#f1f1f1" },
+          color = { fg = "#9399b2", bg = nil },
         },
       },
       lualine_c = {
@@ -34,12 +42,12 @@ function M.config()
           path = 0,
           shorting_target = 40,
           symbols = {
-            modified = "󰣕",
+            modified = icons.ui.Modified,
             readonly = "[ReadOnly]",
             unnamed = "No Name",
             newfile = "New",
           },
-          color = { fg = "#888888" },
+          color = { fg = "#6c7086" },
           padding = 0,
         },
       },
@@ -47,7 +55,12 @@ function M.config()
         {
           "diagnostics",
           sources = { "nvim_lsp" },
-          symbols = { error = " ", warn = " ", info = " ", hint = " " },
+          symbols = {
+            error = icons.diagnostics.Error,
+            warn = icons.diagnostics.Warning,
+            info = icons.diagnostics.Information,
+            hint = icons.diagnostics.Hint,
+          },
         },
         {
           function()
@@ -55,14 +68,26 @@ function M.config()
             if not ok then
               return ""
             end
+
+            -- lsp
+            local buf_clients = vim.lsp.get_active_clients { bufnr = 0 }
+
+            local lsp_names = {}
+            for _, client in pairs(buf_clients) do
+              table.insert(lsp_names, client.name)
+            end
+            local lsp_name = table.concat(lsp_names, ", ")
+
             local filetype = vim.bo.filetype
             local formatters = conform.formatters_by_ft[filetype] or {}
 
             if vim.tbl_islist(formatters) and #formatters > 0 then
-              return "󰉼 " .. table.concat(formatters, ",")
+              return "" .. lsp_name .. ":" .. table.concat(formatters, ",") .. ""
             end
+
             return ""
           end,
+          color = { fg = "#585b70", bg = "#11111b" },
         },
       },
       lualine_y = {},

@@ -5,7 +5,9 @@ local M = {
     {
       "<leader>fw",
       function()
-        Snacks.picker.grep()
+        Snacks.picker.grep {
+          hidden = true,
+        }
       end,
       desc = "Find Text",
     },
@@ -16,6 +18,7 @@ local M = {
           finder = "files",
           format = "file",
           show_empty = true,
+          hidden = true,
           supports_live = true,
         }
       end,
@@ -31,7 +34,7 @@ local M = {
           end,
           finder = "buffers",
           format = "buffer",
-          hidden = false,
+          hidden = true,
           unloaded = true,
           current = true,
           sort_lastused = false,
