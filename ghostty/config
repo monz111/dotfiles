@@ -1,9 +1,9 @@
 theme = catppuccin-mocha
 
-font-family = "Geist Mono"
-font-family-italic = "JetBrainsMono Nerd Font"
+font-family = "HackGen"
+font-family-italic = "HackGen"
 font-size = 14
-font-feature = -dlig -feat
+font-feature = -feat
 font-thicken = true
 font-thicken-strength = 255
 
@@ -23,4 +23,3 @@ cursor-text = #11111b
 macos-option-as-alt = true
 
 custom-shader = "./shaders/bloom25.glsl"
-#custom-shader = "./shaders/in-game-crt.glsl"
