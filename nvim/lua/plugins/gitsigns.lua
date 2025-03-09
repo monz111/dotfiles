@@ -9,7 +9,7 @@ M.config = function()
   local wk = require "which-key"
   wk.add {
     { "<leader>gR", "<cmd>lua require 'gitsigns'.reset_buffer()<cr>", desc = "Reset Buffer" },
-    { "<leader>gd", "<cmd>Gitsigns diffthis HEAD<cr>", desc = "Git Diff" },
+    { "<leader>gd", "<cmd>lua require 'gitsigns'.diffthis()<cr>", desc = "Git Diff" },
     { "<leader>gj", "<cmd>lua require 'gitsigns'.next_hunk({navigation_message = false})<cr>", desc = "Next Hunk" },
     { "<leader>gk", "<cmd>lua require 'gitsigns'.prev_hunk({navigation_message = false})<cr>", desc = "Prev Hunk" },
     { "<leader>gl", "<cmd>lua require 'gitsigns'.blame_line()<cr>", desc = "Blame" },
@@ -41,6 +41,7 @@ M.config = function()
       interval = 1000,
       follow_files = true,
     },
+    word_diff = true,
     attach_to_untracked = true,
     current_line_blame_formatter = "<author>, <author_time:%Y-%m-%d> - <summary>",
     update_debounce = 200,
