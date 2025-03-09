@@ -2,13 +2,13 @@ theme = catppuccin-mocha
 
 font-family = "HackGen"
 font-family-italic = "HackGen"
-font-size = 14
+font-size = 20
 font-feature = -feat
 font-thicken = true
 font-thicken-strength = 255
 
 adjust-cell-width = 0%
-adjust-cell-height = 10%
+adjust-cell-height = 25%
 
 background-opacity = 0.6
 background-blur-radius = 15
