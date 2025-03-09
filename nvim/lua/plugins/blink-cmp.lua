@@ -3,7 +3,8 @@ local M = {
   build = "cargo build --release",
   -- event = { "LspAttach" },
   dependencies = {
-    { "rafamadriz/friendly-snippets" },
+    "rafamadriz/friendly-snippets",
+    "moyiz/blink-emoji.nvim",
   },
   opts_extend = { "sources.default", "sources.per_filetype", "sources.providers" },
 }
@@ -55,7 +56,7 @@ function M.config()
       nerd_font_variant = "mono",
     },
     sources = {
-      default = { "lsp", "path", "snippets", "buffer", "markdown", "dadbod" },
+      default = { "lsp", "path", "snippets", "buffer", "markdown", "dadbod", "emoji" },
       per_filetype = {
         sql = { "snippets", "dadbod", "buffer" },
       },
@@ -68,6 +69,15 @@ function M.config()
         dadbod = {
           name = "Dadbod",
           module = "vim_dadbod_completion.blink",
+        },
+        emoji = {
+          module = "blink-emoji",
+          name = "Emoji",
+          score_offset = 15,
+          opts = { insert = true },
+          should_show_items = function()
+            return vim.tbl_contains({ "gitcommit", "markdown" }, vim.o.filetype)
+          end,
         },
       },
     },
