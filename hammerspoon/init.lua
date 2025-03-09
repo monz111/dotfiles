@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-global
 hs.window.animationDuration = 0.1
 
 local margin = 20
