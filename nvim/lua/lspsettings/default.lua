@@ -83,8 +83,6 @@ local function common_capabilities()
 end
 
 M.on_attach = function(client, bufnr)
-  print "on_attach"
-
   if client.supports_method "textDocument/inlayHint" then
     vim.lsp.inlay_hint.enable(true, { bufnr = bufnr })
   end
