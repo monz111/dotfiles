@@ -43,8 +43,9 @@ function M.config()
   }
 
   which_key.add {
+    { "vs",        "<cmd>vsplit<CR>",    desc = "Split Vertically" },
+    { "vh",        "<cmd>split<CR>",     desc = "Split Horizontally" },
     { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
-    { "<leader>v", "<cmd>vsplit<CR>", desc = "Split" },
     { "<leader>c", group = "Lab Code" },
     { "<leader>d", group = "Debug" },
     { "<leader>m", group = "MarkDown" },

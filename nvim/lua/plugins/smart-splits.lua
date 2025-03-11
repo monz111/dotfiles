@@ -3,6 +3,17 @@ local M = {
 }
 
 function M.config()
+  require("smart-splits").setup {
+    resize_mode = {
+      quit_key = "<ESC>",
+      resize_keys = { "h", "j", "k", "l" },
+      silent = false,
+      hooks = {
+        on_enter = nil,
+        on_leave = nil,
+      },
+    },
+  }
   local icons = require "icons"
   local wk = require "which-key"
   wk.add {
