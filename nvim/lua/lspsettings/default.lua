@@ -21,6 +21,7 @@ wk.add {
   { "gk",         "<cmd>lua vim.lsp.buf.hover()<CR>",          desc = "Show Hover" },
   { "gl",         "<cmd>lua vim.diagnostic.open_float()<CR>",  desc = "Show Diagnostics" },
   { "gr",         "<cmd>lua vim.lsp.buf.references()<CR>",     desc = "Find References" },
+  { "gi",         "<cmd>lua vim.lsp.buf.code_action()<CR>",    desc = "Code Action (e.g., Auto Import)" },
   { "gI",         "<cmd>lua vim.lsp.buf.implementation()<CR>", desc = "Go to Implementation" },
   { "gq",         "<cmd>lua vim.diagnostic.setloclist()<cr>",  desc = "Quickfix" },
   { "gy",         YankDiagnostic,                              desc = "Yank Diagnostic" },

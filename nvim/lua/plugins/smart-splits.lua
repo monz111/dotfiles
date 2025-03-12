@@ -10,7 +10,6 @@ function M.config()
       silent = false,
       hooks = {
         on_enter = nil,
-        on_leave = nil,
       },
     },
   }
@@ -20,6 +19,18 @@ function M.config()
     {
       "<leader>wr",
       "<cmd>lua require('smart-splits').start_resize_mode()<cr>",
+      desc = "[SmartSplits] Resize Mode",
+      icon = icons.ui.Resize,
+    },
+    {
+      "<leader>w1",
+      "<cmd>lua require('smart-splits').resize_right(40)<cr>",
+      desc = "[SmartSplits] Resize Mode",
+      icon = icons.ui.Resize,
+    },
+    {
+      "<leader>w2",
+      "<cmd>lua require('smart-splits').resize_left(40)<cr>",
       desc = "[SmartSplits] Resize Mode",
       icon = icons.ui.Resize,
     },

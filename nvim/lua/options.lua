@@ -40,6 +40,7 @@ vim.opt.scrolloff = 0
 vim.opt.sidescrolloff = 8
 vim.opt.guifont = "Hack Nerd Font" -- the font used in graphical neovim applications
 vim.opt.title = false
+vim.o.equalalways = false
 vim.opt.fillchars = vim.opt.fillchars + "eob: "
 vim.opt.fillchars:append {
   stl = " ",
@@ -78,7 +79,7 @@ vim.filetype.add {
     ["*.env"] = "sh",
   },
 }
-vim.api.nvim_create_autocmd({"BufRead", "BufNewFile"}, {
+vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = "Config",
-  command = "set filetype=toml"
+  command = "set filetype=toml",
 })
