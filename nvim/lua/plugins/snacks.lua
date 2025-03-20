@@ -32,7 +32,7 @@ local M = {
           Snacks.picker.buffers {
             -- I always want my buffers picker to start in normal mode
             on_show = function()
-              vim.cmd.stopinsert()
+              -- vim.cmd.stopinsert()
             end,
             finder = "buffers",
             format = "buffer",
