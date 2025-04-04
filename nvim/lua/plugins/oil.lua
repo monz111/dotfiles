@@ -1,6 +1,6 @@
 local M = {
   "stevearc/oil.nvim",
-  dependencies = { "nvim-tree/nvim-web-devicons" },
+  dependencies = { "nvim-tree/nvim-web-devicons", "refractalize/oil-git-status.nvim" },
 }
 
 function M.config()
@@ -26,9 +26,41 @@ function M.config()
     win_options = {
       wrap = true,
       winblend = 0,
+      signcolumn = "yes:2",
     },
     keymaps = {
       ["<ESC>"] = "actions.close",
+    },
+  }
+
+  local icons = require "icons"
+  require("oil-git-status").setup {
+    show_ignored = true,
+    symbols = {
+      index = {
+        ["!"] = icons.git.FileUnmerged,
+        ["?"] = icons.git.FileUnstaged,
+        ["A"] = icons.git.LineAdded,
+        ["C"] = icons.ui.Clipboard,
+        ["D"] = icons.git.FileDeleted,
+        ["M"] = icons.git.LineModified,
+        ["R"] = icons.git.FileRenamed,
+        ["T"] = icons.git.FileUnstaged,
+        ["U"] = icons.git.FileUnmerged,
+        [" "] = " ",
+      },
+      working_tree = {
+        ["!"] = icons.git.FileUnmerged,
+        ["?"] = icons.git.FileUnstaged,
+        ["A"] = icons.git.LineAdded,
+        ["C"] = icons.ui.Clipboard,
+        ["D"] = icons.git.FileDeleted,
+        ["M"] = icons.git.LineModified,
+        ["R"] = icons.git.FileRenamed,
+        ["T"] = icons.git.FileUnstaged,
+        ["U"] = icons.git.FileUnmerged,
+        [" "] = " ",
+      },
     },
   }
 end
