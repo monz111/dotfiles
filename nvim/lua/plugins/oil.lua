@@ -5,7 +5,6 @@ local M = {
 
 function M.config()
   local keymap = vim.keymap.set
-  local wk = require "which-key"
   keymap("n", "-", "<CMD>Oil --float<CR>", { desc = "Open parent directory" })
 
   require("oil").setup {
