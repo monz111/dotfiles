@@ -48,7 +48,7 @@ function M.config()
     { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
     { "<leader>c", group = "Lab Code" },
     { "<leader>d", group = "Debug" },
-    { "<leader>m", group = "MarkDown" },
+    { "<leader>m", group = "Mark" },
     { "<leader>f", group = "Find" },
     { "<leader>g", group = "Git" },
     { "<leader>l", group = "LSP" },
