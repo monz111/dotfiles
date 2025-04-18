@@ -24,6 +24,7 @@ function M.config()
       harpoon = true,
       hop = false,
       markdown = true,
+      render_markdown = true,
       mini = {
         enabled = true,
         indentscope_color = "",
