@@ -24,19 +24,11 @@ function M.config()
     },
     sections = {
       lualine_a = {},
-      lualine_b = {
-        {
-          "harpoon2",
-          indicators = { " 1 ", " 2 ", " 3 ", " 4 " },
-          active_indicators = { "[1]", "[2]", "[3]", "[4]" },
-          _separator = "",
-          color = { fg = "#9399b2", bg = nil },
-        },
-      },
+      lualine_b = {},
       lualine_c = {
         {
           "filetype",
-          colored = false,
+          colored = true,
           icon_only = true,
           icon = { align = "right" },
           padding = { left = 1, right = 0 },
@@ -44,7 +36,7 @@ function M.config()
         {
           "filename",
           file_status = true,
-          path = 0,
+          path = 1,
           shorting_target = 40,
           symbols = {
             modified = icons.ui.Modified,

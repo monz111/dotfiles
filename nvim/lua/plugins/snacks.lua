@@ -27,32 +27,6 @@ local M = {
         desc = "Find Files",
       },
       {
-        "<leader><leader>",
-        function()
-          Snacks.picker.buffers {
-            -- I always want my buffers picker to start in normal mode
-            on_show = function()
-              -- vim.cmd.stopinsert()
-            end,
-            finder = "buffers",
-            format = "buffer",
-            hidden = true,
-            unloaded = false,
-            current = true,
-            sort_lastused = true,
-            win = {
-              input = {
-                keys = {
-                  ["d"] = "bufdelete",
-                },
-              },
-              list = { keys = { ["d"] = "bufdelete" } },
-            },
-          }
-        end,
-        desc = "Buffers",
-      },
-      {
         "<leader>gg",
         function()
           Snacks.lazygit()
