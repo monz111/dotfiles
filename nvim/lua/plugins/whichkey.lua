@@ -47,6 +47,7 @@ function M.config()
     { "vh",        "<cmd>split<CR>",     desc = "Split Horizontally" },
     { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
     { "<leader>c", group = "Lab Code" },
+    { "<leader>b", group = "Buffer" },
     { "<leader>d", group = "Debug" },
     { "<leader>m", group = "Mark" },
     { "<leader>f", group = "Find" },
