@@ -58,12 +58,16 @@ dracula.draw.blood(c, {
 
 c.auto_save.session = True
 c.content.pdfjs = True
-c.fonts.default_family = "HackGen"
-c.fonts.default_size = "18pt"
+c.fonts.default_family = 'HackGen'
+c.fonts.default_size = '18pt'
 c.fonts.web.size.default = 16
 c.url.default_page = 'https://start.duckduckgo.com/'
 c.url.start_pages = 'https://start.duckduckgo.com/'
 c.scrolling.bar = "always"
+
+c.completion.height = '20%'
+c.completion.shrink = True
+c.completion.use_best_match = True
 
 # hints
 c.hints.chars = 'qweasdzxciopjklnm'
