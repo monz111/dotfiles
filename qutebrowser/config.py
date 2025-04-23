@@ -36,7 +36,8 @@ config.bind('}', ':tab-move +')
 config.bind('h', ':back')
 config.bind('l', ':forward')
 config.bind('b', 'bookmark-add')
-config.bind('<Shift+b>', 'bookmark-list')
+config.bind('<Shift-b>', 'bookmark-del')
+config.bind('<Ctrl+b>', 'bookmark-list -t')
 config.bind('<Meta+1>', 'tab-focus 1')
 config.bind('<Meta+2>', 'tab-focus 2')
 config.bind('<Meta+3>', 'tab-focus 3')
@@ -57,6 +58,8 @@ dracula.draw.blood(c, {
 
 c.auto_save.session = True
 c.content.pdfjs = True
+c.fonts.default_family = "HackGen"
+c.fonts.default_size = "18pt"
 c.fonts.web.size.default = 16
 c.url.default_page = 'https://start.duckduckgo.com/'
 c.url.start_pages = 'https://start.duckduckgo.com/'
