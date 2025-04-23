@@ -8,7 +8,12 @@ c.aliases = {
     'cs': 'config-source',
     'bd': 'bookmark-del',
     'dd': 'download-delete',
+    'dev': 'devtools',
+    'log': 'messages',
     'bit': 'spawn --userscript qute-bitwarden.js',
+    'bitu': 'spawn --userscript qute-bitwarden.js --username-only',
+    'bitp': 'spawn --userscript qute-bitwarden.js --password-only',
+    'bitc': 'spawn --userscript qute-bitwarden.js --custom-fields-only',
 }
 config.set('auto_save.session', True)
 config.bind("yo", "yank inline [[{url}][{title}]]")
@@ -60,7 +65,7 @@ c.hints.chars = 'qweasdzxciopjklnm'
 c.hints.uppercase = True
 c.colors.hints.fg = '#222222'
 c.fonts.keyhint = '18pt HackGen'
-c.fonts.hints = 'normal 15pt HackGen'
+c.fonts.hints = 'normal 13pt HackGen'
 c.hints.padding = {'top': 0, 'bottom': 1, 'left': 3, 'right': 3}
 c.colors.hints.bg = 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(255, 247, 133, 204), stop: 1 rgba(255, 197, 66, 204))'
 c.hints.border = '1px solid #E3BE23'
