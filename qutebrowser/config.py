@@ -65,8 +65,8 @@ c.hints.chars = 'qweasdzxciopjklnm'
 c.hints.uppercase = True
 c.colors.hints.fg = '#222222'
 c.fonts.keyhint = '18pt HackGen'
-c.fonts.hints = 'normal 13pt HackGen'
-c.hints.padding = {'top': 0, 'bottom': 1, 'left': 3, 'right': 3}
+c.fonts.hints = 'normal 12pt HackGen'
+c.hints.padding = {'top': 0, 'bottom': 0, 'left': 1, 'right': 1}
 c.colors.hints.bg = 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(255, 247, 133, 204), stop: 1 rgba(255, 197, 66, 204))'
 c.hints.border = '1px solid #E3BE23'
 
@@ -112,3 +112,18 @@ c.url.searchengines = {
     'd': 'https://drive.google.com/drive/search?q={}',
     "y": 'https://www.youtube.com/results?search_query={}',
 }
+# Elements that commonly miss hints
+c.hints.selectors['all'] += [
+    'div[onclick]',
+    'span[onclick]',
+    '[role=link]',
+    '[role=button]',
+    '[role=tab]',
+    '[role=menuitem]',
+    '[aria-haspopup]',
+    'label.tocitem',
+    'i.button-icon',
+    '.clickable',
+    '.expando-button'
+    '.list-item',
+]
