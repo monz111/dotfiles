@@ -1,6 +1,8 @@
 import dracula.draw
 
-# config
+config.load_autoconfig()
+config.set('auto_save.session', True)
+
 c.aliases = {
     'o': 'open -t',
     'q': 'close',
@@ -14,8 +16,8 @@ c.aliases = {
     'bitu': 'spawn --userscript qute-bitwarden.js --username-only',
     'bitp': 'spawn --userscript qute-bitwarden.js --password-only',
     'bitc': 'spawn --userscript qute-bitwarden.js --custom-fields-only',
+    'yts': 'spawn --userscript set-youtube-speed.js',
 }
-config.set('auto_save.session', True)
 config.bind("yo", "yank inline [[{url}][{title}]]")
 config.bind('<Meta-t>', 'open -t')
 config.bind("<Meta-w>", ":tab-close")
@@ -24,6 +26,7 @@ config.bind('<Meta-p>', ':tab-pin')
 config.bind('<Meta-Shift-t>', 'undo')
 config.bind('<Meta-l>', ':cmd-set-text :open {url:pretty}')
 config.bind('o', 'cmd-set-text -s :open -t')
+config.bind(',v', 'cmd-set-text -s :yts')
 config.bind('go', 'cmd-set-text -s :quickmark-load -t')
 config.bind('gO', 'cmd-set-text -s :quickmark-load')
 config.bind('[', ':tab-prev')
@@ -43,9 +46,8 @@ config.bind('<Meta+6>', 'tab-focus 6')
 config.bind('<Meta+7>', 'tab-focus 7')
 config.bind('<Meta+8>', 'tab-focus 8')
 config.bind('<Meta+9>', 'tab-focus 9')
-config.bind('<Meta+b>', 'spawn --userscript qute-bitwarden.js')
+config.bind('<Meta+b>', 'bit')
 
-config.load_autoconfig()
 dracula.draw.blood(c, {
     'spacing': {
         'vertical': 6,
@@ -72,8 +74,8 @@ c.hints.border = '1px solid #E3BE23'
 
 # tabs
 c.tabs.indicator.width = 0
-c.tabs.title.format = "{current_title}"
-c.tabs.favicons.scale = 1.4
+c.tabs.title.format = " {current_title}"
+c.tabs.favicons.scale = 2
 c.tabs.favicons.show = "always"
 c.new_instance_open_target = "tab"
 c.new_instance_open_target_window = 'last-focused'
@@ -83,8 +85,8 @@ c.fonts.tabs.unselected = '14pt HackGen'
 c.window.transparent = True
 c.window.hide_decoration = True
 c.tabs.position = "left"
-c.tabs.width = 260
-c.tabs.padding = {'top': 10, 'bottom': 10, 'left': 5, 'right': 5}
+c.tabs.width = 280
+c.tabs.padding = {'top': 15, 'bottom': 15, 'left': 8, 'right': 5}
 
 # adblock
 c.content.blocking.enabled = True

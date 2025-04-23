@@ -13,5 +13,5 @@ ln -nfs ~/dotfiles/sesh ~/.config/sesh
 ln -nfs ~/dotfiles/ghostty ~/.config/ghostty
 ln -nfs ~/dotfiles/lazygit ~/.config/lazygit
 ln -nfs ~/dotfiles/qutebrowser/config.py ~/.qutebrowser/config.py
-ln -nfs ~/dotfiles/qutebrowser/userscripts/qute-bitwarden.js ~/.qutebrowser/userscripts/
 ln -nfs ~/dotfiles/qutebrowser/greasemonkey/ ~/.qutebrowser/greasemonkey
+ln -nfs ~/dotfiles/qutebrowser/userscripts/* ~/.qutebrowser/userscripts/

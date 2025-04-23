@@ -36,7 +36,7 @@
     `ytd-merch-shelf-renderer`,
   ];
 
-  window.dev = true; //开发使用
+  window.dev = false; //开发使用
 
   /**
    * 将标准时间格式化
