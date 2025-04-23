@@ -19,6 +19,7 @@ c.aliases = {
     'bitp': 'spawn --userscript qute-bitwarden.js --password-only',
     'bitc': 'spawn --userscript qute-bitwarden.js --custom-fields-only',
     'yts': 'spawn --userscript set-youtube-speed.js',
+    'gr': 'greasemonkey-reload',
 }
 config.bind("yo", "yank inline [[{url}][{title}]]")
 config.bind('<Meta-t>', 'open -t')
@@ -77,7 +78,7 @@ c.hints.chars = 'qweasdzxciopjklnm'
 c.hints.uppercase = True
 c.colors.hints.fg = '#222222'
 c.fonts.keyhint = '18pt HackGen'
-c.fonts.hints = 'normal 12pt HackGen'
+c.fonts.hints = 'normal 11pt Verdana'
 c.hints.padding = {'top': 0, 'bottom': 0, 'left': 1, 'right': 1}
 c.colors.hints.bg = 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(255, 247, 133, 204), stop: 1 rgba(255, 197, 66, 204))'
 c.hints.border = '1px solid #E3BE23'
