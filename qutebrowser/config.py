@@ -12,6 +12,8 @@ c.aliases = {
     'dd': 'download-delete',
     'dev': 'devtools',
     'log': 'messages',
+    'aq': 'cmd-set-text -s :quickmark-add {url}',
+    'ad': 'quickmark-del',
     'bit': 'spawn --userscript qute-bitwarden.js',
     'bitu': 'spawn --userscript qute-bitwarden.js --username-only',
     'bitp': 'spawn --userscript qute-bitwarden.js --password-only',
@@ -24,6 +26,7 @@ config.bind("<Meta-w>", ":tab-close")
 config.bind('<Meta-f>', ':set-cmd-text /')
 config.bind('<Meta-p>', ':tab-pin')
 config.bind('<Meta-Shift-t>', 'undo')
+config.bind('<Meta-Shift-i>', 'dev')
 config.bind('<Meta-l>', ':cmd-set-text :open {url:pretty}')
 config.bind('o', 'cmd-set-text -s :open -t')
 config.bind(',v', 'cmd-set-text -s :yts')
@@ -130,6 +133,7 @@ c.hints.selectors['all'] += [
     '[role=tab]',
     '[role=menuitem]',
     '[aria-haspopup]',
+    '[event-type=click]',
     'label.tocitem',
     'i.button-icon',
     '.clickable',
