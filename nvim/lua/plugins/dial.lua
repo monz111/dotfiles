@@ -18,6 +18,8 @@ M.config = function()
       augend.date.alias["%H:%M"],
       augend.constant.alias.ja_weekday,
       augend.constant.alias.ja_weekday_full,
+      augend.constant.alias.alpha,
+      augend.constant.alias.Alpha,
     },
   }
   vim.keymap.set("n", "<C-a>", function()

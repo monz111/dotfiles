@@ -25,6 +25,12 @@ function M.config()
       pick = {
         alphabet = "123456789",
       },
+      name_formatter = function(buf)
+        if buf.buftype == "terminal" or (buf.name and buf.name:match "zsh") then
+          return "Terminal"
+        end
+        return buf.name
+      end,
     },
     highlights = {
       background = {

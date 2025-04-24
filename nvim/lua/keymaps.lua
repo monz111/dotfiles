@@ -27,7 +27,7 @@ keymap("x", "p", [["_dP]])
 keymap("n", "J", "}", opts)
 keymap("n", "K", "{", opts)
 
-keymap("n", "{", ":bnext<cr>", opts)
-keymap("n", "}", ":bprevious<cr>", opts)
+keymap("n", "{", ":bprevious<cr>", opts)
+keymap("n", "}", ":bnext<cr>", opts)
 
 vim.api.nvim_set_keymap("t", "<C-;>", "<C-\\><C-n>", opts)

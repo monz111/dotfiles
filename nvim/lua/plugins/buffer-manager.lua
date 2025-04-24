@@ -20,7 +20,7 @@ function M.config()
   local wk = require "which-key"
   wk.add {
     { "<TAB>", "<CMD>lua require('buffer_manager.ui').toggle_quick_menu()<CR>", desc = "Buffer" },
-    { "<leader>x", "<cmd>bdelete<CR>", desc = "Close buffer" },
+    { "<leader>x", "<cmd>bdelete!<CR>", desc = "Close buffer" },
   }
 end
 

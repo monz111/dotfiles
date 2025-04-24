@@ -84,3 +84,37 @@ vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile" }, {
   pattern = "Config",
   command = "set filetype=toml",
 })
+
+-- Create custom commands for opening terminal in different positions
+vim.api.nvim_create_user_command("Term", function(opts)
+  vim.cmd("split | terminal " .. table.concat(opts.fargs, " "))
+end, { nargs = "*" })
+
+vim.api.nvim_create_user_command("VTerm", function(opts)
+  vim.cmd("vsplit | terminal " .. table.concat(opts.fargs, " "))
+end, { nargs = "*" })
+
+vim.api.nvim_create_user_command("TTerm", function(opts)
+  vim.cmd("tabnew | terminal " .. table.concat(opts.fargs, " "))
+end, { nargs = "*" })
+-- Automatically enter insert mode when opening terminal
+vim.api.nvim_create_autocmd("TermOpen", {
+  pattern = "*",
+  callback = function()
+    vim.cmd "startinsert"
+  end,
+})
+-- Automatically close terminal buffer when process exits with success
+vim.api.nvim_create_autocmd("TermClose", {
+  pattern = "*",
+  callback = function(args)
+    if vim.v.event.status == 0 then
+      pcall(function()
+        local buf = args.buf
+        if vim.api.nvim_buf_is_valid(buf) then
+          vim.cmd("bdelete! " .. buf)
+        end
+      end)
+    end
+  end,
+})

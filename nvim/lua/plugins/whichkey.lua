@@ -43,8 +43,9 @@ function M.config()
   }
 
   which_key.add {
-    { "vs",        "<cmd>vsplit<CR>",    desc = "Split Vertically" },
-    { "vh",        "<cmd>split<CR>",     desc = "Split Horizontally" },
+    { "vs", "<cmd>vsplit<CR>", desc = "Split Vertically" },
+    { "vh", "<cmd>split<CR>", desc = "Split Horizontally" },
+    { "<leader>`", "<cmd>TTerm<CR>", desc = "terminal" },
     { "<leader>q", "<cmd>confirm q<CR>", desc = "Quit" },
     { "<leader>c", group = "Lab Code" },
     { "<leader>b", group = "Buffer" },
@@ -54,8 +55,12 @@ function M.config()
     { "<leader>g", group = "Git" },
     { "<leader>l", group = "LSP" },
     { "<leader>t", group = "Test" },
+    { "<leader>tn", "<cmd>TTerm<CR>", desc = "Open terminal" },
+    { "<leader>th", "<cmd>Term<CR>", desc = "Open terminal (horizontal)" },
+    { "<leader>tv", "<cmd>VTerm<CR>", desc = "Open terminal (vertical)" },
     { "<leader>w", group = "Window" },
     { "<leader>;", group = "Terminal" },
+    { "<Esc>", "<C-\\><C-n>", desc = "terminal exit", mode = "t", hidden = true },
   }
 end
 

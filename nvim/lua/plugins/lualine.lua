@@ -23,8 +23,29 @@ function M.config()
       },
     },
     sections = {
-      lualine_a = {},
-      lualine_b = {},
+      lualine_a = {
+        {
+          "mode",
+          padding = 0,
+          fmt = function()
+            if vim.bo.buftype == "terminal" then
+              return " "
+            end
+          end,
+        },
+      },
+      lualine_b = {
+        {
+          "mode",
+          color = { gui = "bold" },
+          padding = 3,
+          fmt = function()
+            if vim.bo.buftype == "terminal" then
+              return "Terminal"
+            end
+          end,
+        },
+      },
       lualine_c = {
         {
           "filetype",
@@ -46,6 +67,13 @@ function M.config()
           },
           color = { fg = "#6c7086" },
           padding = 0,
+          fmt = function(filename)
+            if vim.bo.buftype == "terminal" then
+              return ""
+            else
+              return filename
+            end
+          end,
         },
       },
       lualine_x = {
