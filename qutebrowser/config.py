@@ -101,7 +101,19 @@ c.tabs.position = "right"
 c.tabs.width = 180
 c.tabs.padding = {'top': 5, 'bottom': 5, 'left': 5, 'right': 5}
 c.tabs.show = "always"
-c.colors.statusbar.insert.fg = "#40a02b"
+c.colors.statusbar.insert.bg = "darkgreen"
+c.colors.statusbar.insert.fg = "lime"
+c.colors.tabs.odd.bg = "#181825"
+c.colors.tabs.even.bg = "#181825"
+c.colors.tabs.selected.odd.bg = "#45475a"
+c.colors.tabs.selected.odd.fg = "#cdd6f4"
+c.colors.tabs.selected.even.bg = "#45475a"
+c.colors.tabs.selected.even.fg = "#cdd6f4"
+c.fonts.tabs.selected = "bold"
+
+
+
+
 
 # adblock
 c.content.blocking.enabled = True
