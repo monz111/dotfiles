@@ -109,7 +109,6 @@ c.colors.tabs.selected.odd.bg = "#45475a"
 c.colors.tabs.selected.odd.fg = "#cdd6f4"
 c.colors.tabs.selected.even.bg = "#45475a"
 c.colors.tabs.selected.even.fg = "#cdd6f4"
-c.fonts.tabs.selected = "bold"
 
 
 
