@@ -1,4 +1,4 @@
-import dracula.draw
+import catppuccin
 
 config.load_autoconfig()
 config.set('auto_save.session', True)
@@ -59,12 +59,7 @@ config.bind('<Meta+8>', 'tab-focus 8')
 config.bind('<Meta+9>', 'tab-focus 9')
 config.bind('<Meta+b>', 'bit')
 
-dracula.draw.blood(c, {
-    'spacing': {
-        'vertical': 6,
-        'horizontal': 8
-    }
-})
+catppuccin.setup(c, 'mocha', True)
 
 c.auto_save.session = True
 c.content.pdfjs = True
@@ -74,7 +69,7 @@ c.fonts.web.size.default = 14
 c.url.default_page = 'https://start.duckduckgo.com/'
 c.url.start_pages = 'https://start.duckduckgo.com/'
 c.scrolling.bar = "always"
-c.scrolling.smooth = True
+c.scrolling.smooth = False
 
 c.completion.height = '20%'
 c.completion.shrink = True
@@ -85,8 +80,8 @@ c.hints.chars = 'qweasdzxciopjklnm'
 c.hints.uppercase = True
 c.colors.hints.fg = '#222222'
 c.fonts.keyhint = '14pt HackGen'
-c.fonts.hints = 'normal 16pt Verdana'
-c.hints.padding = {'top': 0, 'bottom': 0, 'left': 1, 'right': 1}
+c.fonts.hints = 'normal 15pt HackGen'
+c.hints.padding = {'top': 0, 'bottom': 0, 'left': 2, 'right': 2}
 c.colors.hints.bg = 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(255, 247, 133, 204), stop: 1 rgba(255, 197, 66, 204))'
 c.hints.border = '1px solid #E3BE23'
 
@@ -106,6 +101,7 @@ c.tabs.position = "right"
 c.tabs.width = 180
 c.tabs.padding = {'top': 5, 'bottom': 5, 'left': 5, 'right': 5}
 c.tabs.show = "always"
+c.colors.statusbar.insert.fg = "#40a02b"
 
 # adblock
 c.content.blocking.enabled = True
