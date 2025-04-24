@@ -33,8 +33,9 @@ config.bind('<Meta-p>', ':tab-pin')
 config.bind('<Meta-Shift-t>', 'undo')
 config.bind('<Meta-Shift-i>', 'dev')
 config.bind('<Meta-l>', ':cmd-set-text :open {url:pretty}')
-config.bind('<Meta-t>', 'cmd-set-text -s :open -t')
-config.bind('o', 'go')
+config.bind('<Meta-t>', ':cmd-set-text -s :open -t')
+config.bind('<Shift-o>', 'go')
+config.bind('o', ':cmd-set-text -s :open -t')
 config.bind(',v', 'cmd-set-text -s :yts')
 config.bind('go', 'go')
 config.bind('gO', 'gO')
@@ -68,8 +69,8 @@ dracula.draw.blood(c, {
 c.auto_save.session = True
 c.content.pdfjs = True
 c.fonts.default_family = 'HackGen'
-c.fonts.default_size = '18pt'
-c.fonts.web.size.default = 16
+c.fonts.default_size = '12pt'
+c.fonts.web.size.default = 14
 c.url.default_page = 'https://start.duckduckgo.com/'
 c.url.start_pages = 'https://start.duckduckgo.com/'
 c.scrolling.bar = "always"

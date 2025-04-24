@@ -10,6 +10,17 @@
 (function () {
   'use strict';
 
+  const adSkipper = document.createElement('div');
+  adSkipper.textContent = 'Ad Skipper';
+  adSkipper.style.padding = '10px';
+  adSkipper.style.backgroundColor = '#1d1b1b';
+  adSkipper.style.color = '#f1f1f1';
+  adSkipper.style.margin = '5px 0';
+  adSkipper.style.borderRadius = '5px';
+
+  const mastheadContainer = document.querySelector('#start');
+  mastheadContainer.after(adSkipper);
+
   const style = document.createElement('style');
   style.textContent = `
         ytd-ad-slot-renderer,
