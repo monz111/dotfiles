@@ -12,15 +12,19 @@ c.aliases = {
     'dd': 'download-delete',
     'dev': 'devtools',
     'log': 'messages',
-    'aq': 'cmd-set-text -s :quickmark-add {url}',
-    'ad': 'quickmark-del',
+    'qa': 'cmd-set-text -s :quickmark-add {url}',
+    'qd': 'quickmark-del',
     'bit': 'spawn --userscript qute-bitwarden.js',
     'bitu': 'spawn --userscript qute-bitwarden.js --username-only',
     'bitp': 'spawn --userscript qute-bitwarden.js --password-only',
     'bitc': 'spawn --userscript qute-bitwarden.js --custom-fields-only',
     'yts': 'spawn --userscript set-youtube-speed.js',
     'gr': 'greasemonkey-reload',
+    'go': 'cmd-set-text -s :quickmark-load -t',
+    'gO': 'cmd-set-text -s :quickmark-load'
 }
+config.bind('f', 'mode-leave', mode='hint')
+config.bind('<Meta-s>', 'config-cycle tabs.show always never')
 config.bind("yo", "yank inline [[{url}][{title}]]")
 config.bind('<Meta-t>', 'open -t')
 config.bind("<Meta-w>", ":tab-close")
@@ -29,18 +33,19 @@ config.bind('<Meta-p>', ':tab-pin')
 config.bind('<Meta-Shift-t>', 'undo')
 config.bind('<Meta-Shift-i>', 'dev')
 config.bind('<Meta-l>', ':cmd-set-text :open {url:pretty}')
-config.bind('o', 'cmd-set-text -s :open -t')
+config.bind('<Meta-t>', 'cmd-set-text -s :open -t')
+config.bind('o', 'go')
 config.bind(',v', 'cmd-set-text -s :yts')
-config.bind('go', 'cmd-set-text -s :quickmark-load -t')
-config.bind('gO', 'cmd-set-text -s :quickmark-load')
+config.bind('go', 'go')
+config.bind('gO', 'gO')
 config.bind('[', ':tab-prev')
 config.bind(']', ':tab-next')
 config.bind('{', ':tab-move -')
 config.bind('}', ':tab-move +')
 config.bind('h', ':back')
 config.bind('l', ':forward')
-config.bind('b', 'bookmark-add')
-config.bind('<Shift-b>', 'bookmark-del')
+config.bind('b', 'qa')
+config.bind('<Shift-m>', 'qd')
 config.bind('<Ctrl+b>', 'bookmark-list -t')
 config.bind('<Meta+1>', 'tab-focus 1')
 config.bind('<Meta+2>', 'tab-focus 2')
@@ -68,6 +73,7 @@ c.fonts.web.size.default = 16
 c.url.default_page = 'https://start.duckduckgo.com/'
 c.url.start_pages = 'https://start.duckduckgo.com/'
 c.scrolling.bar = "always"
+c.scrolling.smooth = True
 
 c.completion.height = '20%'
 c.completion.shrink = True
@@ -77,27 +83,28 @@ c.completion.use_best_match = True
 c.hints.chars = 'qweasdzxciopjklnm'
 c.hints.uppercase = True
 c.colors.hints.fg = '#222222'
-c.fonts.keyhint = '18pt HackGen'
-c.fonts.hints = 'normal 11pt Verdana'
+c.fonts.keyhint = '14pt HackGen'
+c.fonts.hints = 'normal 16pt Verdana'
 c.hints.padding = {'top': 0, 'bottom': 0, 'left': 1, 'right': 1}
 c.colors.hints.bg = 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(255, 247, 133, 204), stop: 1 rgba(255, 197, 66, 204))'
 c.hints.border = '1px solid #E3BE23'
 
 # tabs
 c.tabs.indicator.width = 0
-c.tabs.title.format = " {current_title}"
-c.tabs.favicons.scale = 2
+c.tabs.title.format = "{current_title}"
+c.tabs.favicons.scale = 1.5
 c.tabs.favicons.show = "always"
 c.new_instance_open_target = "tab"
 c.new_instance_open_target_window = 'last-focused'
 c.tabs.new_position.unrelated = 'next'
-c.fonts.tabs.selected = '14pt HackGen'
-c.fonts.tabs.unselected = '14pt HackGen'
+c.fonts.tabs.selected = '13pt HackGen'
+c.fonts.tabs.unselected = '13pt HackGen'
 c.window.transparent = True
 c.window.hide_decoration = True
-c.tabs.position = "left"
-c.tabs.width = 280
-c.tabs.padding = {'top': 15, 'bottom': 15, 'left': 8, 'right': 5}
+c.tabs.position = "right"
+c.tabs.width = 180
+c.tabs.padding = {'top': 5, 'bottom': 5, 'left': 5, 'right': 5}
+c.tabs.show = "switching"
 
 # adblock
 c.content.blocking.enabled = True
@@ -137,7 +144,10 @@ c.hints.selectors['all'] += [
     '[event-type=click]',
     'label.tocitem',
     'i.button-icon',
+    '.next-btn',
+    '.pre-btn',
     '.clickable',
     '.expando-button'
     '.list-item',
+    '.cursor-pointer',
 ]
