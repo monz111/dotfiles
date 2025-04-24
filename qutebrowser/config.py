@@ -105,7 +105,7 @@ c.window.hide_decoration = True
 c.tabs.position = "right"
 c.tabs.width = 180
 c.tabs.padding = {'top': 5, 'bottom': 5, 'left': 5, 'right': 5}
-c.tabs.show = "switching"
+c.tabs.show = "always"
 
 # adblock
 c.content.blocking.enabled = True

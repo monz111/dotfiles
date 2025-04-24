@@ -12,6 +12,7 @@ const { execSync } = require('child_process');
 const { writeFileSync } = require('fs');
 const { parse: parseURL } = require('url');
 const path = require('path');
+const { log } = require('util');
 
 // Command line arguments and environment variables
 const args = process.argv.slice(2);
@@ -230,7 +231,9 @@ const selectEntry = (entries) => {
     }
   });
 
-  const entriesList = entries.map((entry, index) => `${index}: ${entry.name}`).join('\n');
+  const entriesList = entries
+    .map((entry, index) => `${index}: ${entry.name} (${entry.login.username})`)
+    .join('\n');
 
   try {
     const inputFile = path.join(process.env.HOME, '.qutebrowser', 'userscripts', 'bw_entries.txt');
