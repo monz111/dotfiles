@@ -23,6 +23,7 @@ c.aliases = {
     'go': 'cmd-set-text -s :quickmark-load -t',
     'gO': 'cmd-set-text -s :quickmark-load'
 }
+
 config.bind('f', 'mode-leave', mode='hint')
 config.bind('<Meta-s>', 'config-cycle tabs.show always never')
 config.bind("yo", "yank inline [[{url}][{title}]]")
@@ -35,6 +36,7 @@ config.bind('<Meta-Shift-i>', 'dev')
 config.bind('<Meta-l>', ':cmd-set-text :open {url:pretty}')
 config.bind('<Meta-t>', ':cmd-set-text -s :open -t')
 config.bind('<Shift-o>', 'go')
+config.bind('<Shift-c>', 'cs')
 config.bind('o', ':cmd-set-text -s :open -t')
 config.bind(',v', 'cmd-set-text -s :yts')
 config.bind('go', 'go')
@@ -84,6 +86,7 @@ c.fonts.hints = 'normal 15pt HackGen'
 c.hints.padding = {'top': 0, 'bottom': 0, 'left': 2, 'right': 2}
 c.colors.hints.bg = 'qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgba(255, 247, 133, 204), stop: 1 rgba(255, 197, 66, 204))'
 c.hints.border = '1px solid #E3BE23'
+c.fonts.prompts = "normal 15pt HackGen"
 
 # tabs
 c.tabs.indicator.width = 0
