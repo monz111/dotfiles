@@ -52,6 +52,7 @@
 
   const fieldSelectors = {
     username: [
+      'user[email]',
       'input[name="username"]',
       'input[name="email"]',
       'input[name="user"]',
@@ -62,11 +63,13 @@
       'input[id*="username"]',
       'input[id*="email"]',
       'input[id*="user"]',
+      'input[id*="user_email"]',
       'input[aria-label*="username" i]',
       'input[aria-label*="email" i]',
     ],
     password: [
       'input[name="password"]',
+      'input[name="user_password"]',
       'input[name="pass"]',
       'input[name="pwd"]',
       'input[type="password"]',

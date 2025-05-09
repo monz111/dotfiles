@@ -12,6 +12,11 @@ local function YankDiagnostic()
   end
 end
 
+local function toggle_inlay_hints()
+  local bufnr = vim.api.nvim_get_current_buf()
+  vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled({ bufnr = bufnr }), { bufnr = bufnr })
+end
+
 local wk = require "which-key"
 wk.add {
   { "g",          "",                                          desc = "LSP" },
@@ -25,6 +30,7 @@ wk.add {
   { "gI",         "<cmd>lua vim.lsp.buf.implementation()<CR>", desc = "Go to Implementation" },
   { "gq",         "<cmd>lua vim.diagnostic.setloclist()<cr>",  desc = "Quickfix" },
   { "gy",         YankDiagnostic,                              desc = "Yank Diagnostic" },
+  { "gh",         toggle_inlay_hints,                          desc = "Toggle Inlay Hints'" },
   { "<leader>la", "<cmd>lua vim.lsp.buf.code_action()<cr>",    desc = "Code Action" },
   { "<leader>li", "<cmd>LspInfo<cr>",                          desc = "Info" },
   { "<leader>lr", "<cmd>lua vim.lsp.buf.rename()<cr>",         desc = "Rename" },

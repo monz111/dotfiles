@@ -27,7 +27,7 @@ local layout = {
 }
 
 local apps = {
-  browser = "qutebrowser",
+  browser = "Vivaldi",
   terminal = "Ghostty",
   chat = "Slack",
 }
@@ -39,20 +39,26 @@ local function arrangeAndToggleApps(activeAppName)
   local screen = hs.screen.primaryScreen()
   local terminalApp = hs.application.find(apps.terminal)
   local chatApp = hs.application.find(apps.chat)
+  local browserApp = hs.application.find(apps.browser)
 
   if activeAppName == apps.browser and (lastVisibleApp == apps.terminal or lastVisibleApp == apps.chat) then
-    table.insert(windowLayout, { apps.browser, nil, screen, layout.left70, nil, nil })
-    table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
+    chatApp:hide()
+    browserApp:unhide()
+    terminalApp:hide()
+    -- table.insert(windowLayout, { apps.browser, nil, screen, layout.left70, nil, nil })
+    -- table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
   elseif activeAppName == apps.terminal then
     chatApp:hide()
+    browserApp:hide()
     terminalApp:unhide()
-    table.insert(windowLayout, { apps.browser, nil, screen, layout.left40, nil, nil })
-    table.insert(windowLayout, { apps.terminal, nil, screen, layout.right60, nil, nil })
+    -- table.insert(windowLayout, { apps.browser, nil, screen, layout.left40, nil, nil })
+    -- table.insert(windowLayout, { apps.terminal, nil, screen, layout.right60, nil, nil })
   elseif activeAppName == apps.chat then
     terminalApp:hide()
+    browserApp:hide()
     chatApp:unhide()
-    table.insert(windowLayout, { apps.browser, nil, screen, layout.left60, nil, nil })
-    table.insert(windowLayout, { apps.chat, nil, screen, layout.right40, nil, nil })
+    -- table.insert(windowLayout, { apps.browser, nil, screen, layout.left60, nil, nil })
+    -- table.insert(windowLayout, { apps.chat, nil, screen, layout.right40, nil, nil })
   end
 
   hs.layout.apply(windowLayout)

@@ -3,6 +3,9 @@ import catppuccin
 config.load_autoconfig()
 config.set('auto_save.session', True)
 
+import os
+os.environ['DISPLAY'] = ':0'  # zenity
+
 c.aliases = {
     'o': 'open -t',
     'q': 'close',
@@ -14,10 +17,8 @@ c.aliases = {
     'log': 'messages',
     'qa': 'cmd-set-text -s :quickmark-add {url}',
     'qd': 'quickmark-del',
-    'bit': 'spawn --userscript qute-bitwarden.js',
-    'bitu': 'spawn --userscript qute-bitwarden.js --username-only',
-    'bitp': 'spawn --userscript qute-bitwarden.js --password-only',
-    'bitc': 'spawn --userscript qute-bitwarden.js --custom-fields-only',
+    'bit': 'spawn --userscript qute-bitwarden-mac.js',
+    'hello': 'spawn --userscript qute-bitwarden-rs --debug',
     'yts': 'spawn --userscript set-youtube-speed.js',
     'gr': 'greasemonkey-reload',
     'go': 'cmd-set-text -s :quickmark-load -t',
@@ -60,6 +61,7 @@ config.bind('<Meta+7>', 'tab-focus 7')
 config.bind('<Meta+8>', 'tab-focus 8')
 config.bind('<Meta+9>', 'tab-focus 9')
 config.bind('<Meta+b>', 'bit')
+config.bind('<Meta+x>', 'hello')
 
 catppuccin.setup(c, 'mocha', True)
 
@@ -113,10 +115,6 @@ c.colors.tabs.selected.odd.fg = "#cdd6f4"
 c.colors.tabs.selected.even.bg = "#45475a"
 c.colors.tabs.selected.even.fg = "#cdd6f4"
 
-
-
-
-
 # adblock
 c.content.blocking.enabled = True
 c.content.blocking.method = 'both'  # adblock & hosts
@@ -159,6 +157,6 @@ c.hints.selectors['all'] += [
     '.pre-btn',
     '.clickable',
     '.expando-button'
-    '.list-item',
     '.cursor-pointer',
+    '.side-navi .list-item',
 ]

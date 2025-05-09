@@ -4,7 +4,7 @@ export LC_ALL="${LANGUAGE}"
 export GIT_EDITOR=nvim
 export ZSH=$HOME/.oh-my-zsh
 
-ZSH_THEME="avit"
+ZSH_THEME="amuse"
 
 plugins=(git tmux zsh-syntax-highlighting zsh-completions zsh-autosuggestions dotenv)
 
@@ -97,3 +97,5 @@ export FZF_DEFAULT_OPTS=" \
 #sesh session-list
 alias sl="sesh list -c -z | fzf-tmux"
 # export PATH="/opt/homebrew/opt/python@3.9/bin:$PATH"
+
+export PATH="/opt/homebrew/bin:$PATH"
