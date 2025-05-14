@@ -17,6 +17,8 @@ window-padding-color = background
 window-decoration = false
 window-save-state = always
 
+adjust-cursor-thickness = 4
+cursor-style = "block"
 cursor-color = #7f849c
 cursor-text = #11111b
 

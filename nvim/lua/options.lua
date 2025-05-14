@@ -29,6 +29,7 @@ vim.opt.spell = false
 vim.opt.tabstop = 2 -- insert 2 spaces for a tab
 vim.opt.cursorline = true -- highlight the current line
 vim.opt.cursorlineopt = "number"
+vim.opt.guicursor = "i:ver25"
 vim.opt.number = true -- set numbered lines
 vim.opt.laststatus = 0
 vim.opt.showcmd = false
