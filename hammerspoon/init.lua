@@ -27,7 +27,7 @@ local layout = {
 }
 
 local apps = {
-  browser = "Vivaldi",
+  browser = "Zen",
   terminal = "Ghostty",
   chat = "Slack",
 }
@@ -43,8 +43,8 @@ local function arrangeAndToggleApps(activeAppName)
 
   if activeAppName == apps.browser and (lastVisibleApp == apps.terminal or lastVisibleApp == apps.chat) then
     chatApp:hide()
-    browserApp:unhide()
     terminalApp:hide()
+    browserApp:unhide()
     -- table.insert(windowLayout, { apps.browser, nil, screen, layout.left70, nil, nil })
     -- table.insert(windowLayout, { lastVisibleApp, nil, screen, layout.right30, nil, nil })
   elseif activeAppName == apps.terminal then
