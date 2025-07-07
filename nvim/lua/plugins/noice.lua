@@ -22,9 +22,6 @@ function M.config()
       enabled = true,
       opts = {
         position = { row = "100%", col = 0 },
-        border = {
-          style = "none",
-        },
       },
     },
     -- you can enable a preset for easier configuration

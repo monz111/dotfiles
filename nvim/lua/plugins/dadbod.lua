@@ -1,3 +1,4 @@
+-- ~/.local/share/db_ui
 local M = {
   "kristijanhusak/vim-dadbod-ui",
   dependencies = {
