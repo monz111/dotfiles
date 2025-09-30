@@ -22,6 +22,9 @@ function M.config()
       "typescript",
       "javascript",
       "toml",
+      "regex",
+      "css",
+      "tsx"
     },
     highlight = { enable = true },
     indent = { enable = true },

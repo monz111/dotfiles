@@ -25,7 +25,7 @@ function M.config()
       jsonc = { "biome" },
       javascriptreact = { "prettierd" },
       typescriptreact = { "prettier" },
-      php = { "php-cs-fixer" },
+      php = { "php_cs_fixer" },
       markdown = { "markdownlint" },
       html = { "htmlbeautifier" },
       bash = { "beautysh" },
@@ -34,9 +34,9 @@ function M.config()
       toml = { "taplo" },
       css = { "prettierd" },
       scss = { "prettierd" },
-      sh = { { "shfmt" } },
-      sql = { { "sql-formatter" } },
-      mysql = { { "sql-formatter" } },
+      sh = { "shfmt" },
+      sql = { "sql_formatter" },
+      mysql = { "sql_formatter" },
       ["*"] = { "codespell" },
       ["_"] = { "trim_whitespace" },
     },
@@ -74,7 +74,7 @@ function M.config()
     if success then
       fidget.notify "󰉼 File formatted 󰸞"
     else
-      fidget.notify("󰉼 File format failed", vim.log.levels.ERROR, { annote = "File format failed" })
+      fidget.notify("󰉼 File format failed", vim.log.levels.ERROR, { annotate = "File format failed" })
     end
   end
 

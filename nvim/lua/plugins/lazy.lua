@@ -16,6 +16,9 @@ require("lazy").setup {
   install = {
     colorscheme = { "darkplus", "default" },
   },
+  rocks = {
+    enabled = false,
+  },
   ui = {
     border = "rounded",
   },
