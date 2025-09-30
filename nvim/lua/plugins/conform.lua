@@ -44,6 +44,16 @@ function M.config()
       stylua = {
         prepend_args = { "--indent-type", "Spaces", "--indent-width", "2" },
       },
+      php_cs_fixer = {
+        command = "php-cs-fixer",
+        args = { "fix", "$FILENAME" },
+        stdin = false,
+      },
+      sql_formatter = {
+        command = "sql-formatter",
+        args = { "--language", "sql" },
+        stdin = true,
+      },
       biome = {
         args = function(ctx)
           local config_file = vim.fs.find({ "biome.json", ".biomerc.json" }, { upward = true, path = ctx.dirname })[1]
