@@ -1,5 +1,16 @@
 local M = {
   "stevearc/conform.nvim",
+  keys = {
+    {
+      -- Customize or remove this keymap to your liking
+      "<leader>=",
+      function()
+        require("conform").format { async = true }
+      end,
+      mode = "",
+      desc = "Format buffer",
+    },
+  },
 }
 
 function M.config()
@@ -14,7 +25,7 @@ function M.config()
       jsonc = { "biome" },
       javascriptreact = { "prettierd" },
       typescriptreact = { "prettier" },
-      php = { "php_cs_fixer" },
+      php = { "php-cs-fixer" },
       markdown = { "markdownlint" },
       html = { "htmlbeautifier" },
       bash = { "beautysh" },
@@ -24,8 +35,8 @@ function M.config()
       css = { "prettierd" },
       scss = { "prettierd" },
       sh = { { "shfmt" } },
-      sql = { { "sql_formatter" } },
-      mysql = { { "sql_formatter" } },
+      sql = { { "sql-formatter" } },
+      mysql = { { "sql-formatter" } },
       ["*"] = { "codespell" },
       ["_"] = { "trim_whitespace" },
     },
@@ -59,32 +70,12 @@ function M.config()
   -- fidget
   local fidget = require "fidget"
   local function format_with_fidget()
-    local format_args = { lsp_fallback = true, async = true, timeout_ms = 5000 }
-    local formatters = conform.list_formatters()
-    local fmt_names = {}
-
-    if not vim.tbl_isempty(formatters) then
-      fmt_names = vim.tbl_map(function(f)
-        return f.name
-      end, formatters)
-    elseif conform.will_fallback_lsp(format_args) then
-      fmt_names = { "lsp" }
+    local success = conform.format { async = true }
+    if success then
+      fidget.notify "󰉼 File formatted 󰸞"
     else
-      vim.notify("No formatters available", vim.log.levels.WARN)
-      return
+      fidget.notify("󰉼 File format failed", vim.log.levels.ERROR, { annote = "File format failed" })
     end
-
-    local fmt_info = "fmt: " .. table.concat(fmt_names, ", ")
-    local notif = fidget.notify("󰉼 " .. fmt_info, "info", { title = "Formatting", timeout = false })
-
-    conform.format(format_args, function(err)
-      if err then
-        fidget.notify("Format Error: " .. err, "error", { title = "Formatting" })
-        vim.notify("Format Error: " .. err, vim.log.levels.ERROR)
-      else
-        fidget.notify(" " .. fmt_info, "success", { title = "Formatting" })
-      end
-    end)
   end
 
   -- which-key
