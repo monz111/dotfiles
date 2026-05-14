@@ -166,15 +166,6 @@ local transparent_groups = {
   "TreesitterContext",
   "TreesitterContextLineNumber",
   "TreesitterContextBottom",
-  "MarkdownHeading",
-  "RenderMarkdownCode",
-  "RenderMarkdownH1Bg",
-  "RenderMarkdownH2Bg",
-  "RenderMarkdownH3Bg",
-  "RenderMarkdownH4Bg",
-  "RenderMarkdownH5Bg",
-  "RenderMarkdownH6Bg",
-  "RenderMarkdownQuote",
   "AlphaNormal",
   "MasonNormal",
   "LazyNormal",
@@ -184,13 +175,43 @@ local transparent_groups = {
   "DiagnosticVirtualTextHint",
 }
 
+local transparent_prefix_patterns = {
+  "^Snacks",
+  "^WhichKey",
+  "^Noice",
+  "^BlinkCmp",
+  "^Fidget",
+  "^Notify",
+  "^MiniPick",
+  "^Telescope",
+  "^Neogit",
+  "^TreesitterContext",
+}
+
+local function force_transparent(name)
+  pcall(vim.cmd, string.format("highlight %s guibg=NONE ctermbg=NONE", name))
+end
+
 local function apply_transparent()
   for _, g in ipairs(transparent_groups) do
-    local hl = vim.api.nvim_get_hl(0, { name = g, link = false })
-    hl.bg = "NONE"
-    hl.ctermbg = "NONE"
-    vim.api.nvim_set_hl(0, g, hl)
+    force_transparent(g)
   end
+  for _, name in ipairs(vim.fn.getcompletion("", "highlight")) do
+    for _, pat in ipairs(transparent_prefix_patterns) do
+      if name:match(pat) then
+        force_transparent(name)
+        break
+      end
+    end
+  end
+  local normal = vim.api.nvim_get_hl(0, { name = "Normal", link = false })
+  normal.bg = "NONE"
+  normal.ctermbg = "NONE"
+  vim.api.nvim_set_hl(0, "Normal", normal)
+  local normal_nc = vim.api.nvim_get_hl(0, { name = "NormalNC", link = false })
+  normal_nc.bg = "NONE"
+  normal_nc.ctermbg = "NONE"
+  vim.api.nvim_set_hl(0, "NormalNC", normal_nc)
 end
 
 vim.api.nvim_create_autocmd("ColorScheme", {
