@@ -1,7 +1,7 @@
 theme = catppuccin mocha
 
-font-family = "HackGen"
-font-family-italic = "HackGen"
+font-family = "HackGen Bold"
+font-family-italic = "HackGen Bold"
 font-size = 18
 font-feature = -feat
 font-thicken = true

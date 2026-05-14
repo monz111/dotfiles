@@ -77,6 +77,168 @@ vim.api.nvim_create_autocmd({ "FileType" }, {
   end,
 })
 
+local focus_group = vim.api.nvim_create_augroup("focus_colorscheme", { clear = true })
+
+local transparent_groups = {
+  "Normal",
+  "NormalNC",
+  "NormalFloat",
+  "FloatBorder",
+  "FloatTitle",
+  "FloatFooter",
+  "Pmenu",
+  "PmenuSel",
+  "PmenuSbar",
+  "PmenuThumb",
+  "PmenuKind",
+  "PmenuKindSel",
+  "PmenuExtra",
+  "PmenuExtraSel",
+  "SignColumn",
+  "EndOfBuffer",
+  "MsgArea",
+  "WhichKey",
+  "WhichKeyBorder",
+  "WhichKeyFloat",
+  "WhichKeyNormal",
+  "WhichKeyDesc",
+  "WhichKeyGroup",
+  "WhichKeySeparator",
+  "WhichKeyValue",
+  "WhichKeyTitle",
+  "NoiceCmdline",
+  "NoiceCmdlinePopup",
+  "NoiceCmdlinePopupBorder",
+  "NoiceCmdlinePopupTitle",
+  "NoicePopup",
+  "NoicePopupBorder",
+  "NoicePopupmenu",
+  "NoicePopupmenuBorder",
+  "NoiceMini",
+  "BlinkCmpMenu",
+  "BlinkCmpMenuBorder",
+  "BlinkCmpDoc",
+  "BlinkCmpDocBorder",
+  "BlinkCmpDocSeparator",
+  "BlinkCmpSignatureHelp",
+  "BlinkCmpSignatureHelpBorder",
+  "FidgetNormal",
+  "FidgetTitle",
+  "NotifyBackground",
+  "NotifyERRORBody",
+  "NotifyWARNBody",
+  "NotifyINFOBody",
+  "NotifyDEBUGBody",
+  "NotifyTRACEBody",
+  "SnacksNormal",
+  "SnacksNormalNC",
+  "SnacksWinBar",
+  "SnacksBackdrop",
+  "SnacksDashboardNormal",
+  "SnacksPicker",
+  "SnacksPickerBorder",
+  "SnacksPickerInput",
+  "SnacksPickerInputBorder",
+  "SnacksPickerList",
+  "SnacksPickerListBorder",
+  "SnacksPickerPreview",
+  "SnacksPickerPreviewBorder",
+  "SnacksPickerPrompt",
+  "SnacksPickerTitle",
+  "SnacksIndent",
+  "SnacksDimNormal",
+  "MiniPickNormal",
+  "MiniPickBorder",
+  "MiniPickPrompt",
+  "TelescopeNormal",
+  "TelescopeBorder",
+  "TelescopePromptNormal",
+  "TelescopePromptBorder",
+  "TelescopePromptTitle",
+  "TelescopeResultsNormal",
+  "TelescopeResultsBorder",
+  "TelescopeResultsTitle",
+  "TelescopePreviewNormal",
+  "TelescopePreviewBorder",
+  "TelescopePreviewTitle",
+  "NeogitFloat",
+  "NeogitPopupSectionTitle",
+  "TreesitterContext",
+  "TreesitterContextLineNumber",
+  "TreesitterContextBottom",
+  "MarkdownHeading",
+  "RenderMarkdownCode",
+  "RenderMarkdownH1Bg",
+  "RenderMarkdownH2Bg",
+  "RenderMarkdownH3Bg",
+  "RenderMarkdownH4Bg",
+  "RenderMarkdownH5Bg",
+  "RenderMarkdownH6Bg",
+  "RenderMarkdownQuote",
+  "AlphaNormal",
+  "MasonNormal",
+  "LazyNormal",
+  "DiagnosticVirtualTextError",
+  "DiagnosticVirtualTextWarn",
+  "DiagnosticVirtualTextInfo",
+  "DiagnosticVirtualTextHint",
+}
+
+local function apply_transparent()
+  for _, g in ipairs(transparent_groups) do
+    local hl = vim.api.nvim_get_hl(0, { name = g, link = false })
+    hl.bg = "NONE"
+    hl.ctermbg = "NONE"
+    vim.api.nvim_set_hl(0, g, hl)
+  end
+end
+
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = focus_group,
+  pattern = "catppuccin*",
+  callback = function()
+    vim.schedule(apply_transparent)
+  end,
+})
+
+vim.schedule(apply_transparent)
+
+local dim_fg = "#6c7086"
+local saved
+local dimmed = false
+
+local function dim_all()
+  if dimmed then
+    return
+  end
+  saved = {}
+  local names = vim.fn.getcompletion("", "highlight")
+  for _, name in ipairs(names) do
+    saved[name] = vim.api.nvim_get_hl(0, { name = name })
+    local resolved = vim.api.nvim_get_hl(0, { name = name, link = false })
+    resolved.fg = dim_fg
+    resolved.ctermfg = nil
+    vim.api.nvim_set_hl(0, name, resolved)
+  end
+  vim.api.nvim_set_hl(0, "Normal", { fg = dim_fg, bg = "NONE", ctermbg = "NONE" })
+  vim.api.nvim_set_hl(0, "NormalNC", { fg = dim_fg, bg = "NONE", ctermbg = "NONE" })
+  dimmed = true
+end
+
+local function restore_all()
+  if not dimmed or not saved then
+    return
+  end
+  for name, hl in pairs(saved) do
+    vim.api.nvim_set_hl(0, name, hl)
+  end
+  apply_transparent()
+  dimmed = false
+end
+
+vim.api.nvim_create_autocmd("FocusLost", { group = focus_group, callback = dim_all })
+vim.api.nvim_create_autocmd("FocusGained", { group = focus_group, callback = restore_all })
+
 vim.api.nvim_create_autocmd({ "CursorHold" }, {
   callback = function()
     local status_ok, luasnip = pcall(require, "luasnip")
