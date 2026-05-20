@@ -1,6 +1,5 @@
 local M = {
   "MeanderingProgrammer/render-markdown.nvim",
-  version = "v8.3.0",
   dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.icons" },
 }
 

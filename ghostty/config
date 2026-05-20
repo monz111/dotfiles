@@ -1,17 +1,17 @@
 theme = catppuccin mocha
 
-font-family = "HackGen Bold"
+font-family = "HackGen Console NF"
 font-family-italic = "HackGen Bold"
-font-size = 18
-font-feature = -feat
+font-size = 16
+#font-feature = -feat
 font-thicken = true
 font-thicken-strength = 255
 
 adjust-cell-width = 0%
 adjust-cell-height = 0%
 
-background-opacity = 0.6
-background-blur-radius = 15
+background-opacity = 0.4
+background-blur-radius = 12
 
 window-padding-color = background
 window-decoration = false
