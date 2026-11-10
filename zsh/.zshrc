@@ -85,7 +85,6 @@ precmd() {
   fi
 }
 
-eval "$(zoxide init --cmd cd zsh)"
 
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1e1e2e,spinner:#f5e0dc,hl:#f38ba8 \
@@ -99,3 +98,10 @@ alias sl="sesh list -c -z | fzf-tmux"
 # export PATH="/opt/homebrew/opt/python@3.9/bin:$PATH"
 
 export PATH="/opt/homebrew/bin:$PATH"
+source /Users/monz/.safe-chain/scripts/init-posix.sh # Safe-chain Zsh initialization script
+
+# fzf: Ctrl-R で履歴を fuzzy 検索、Ctrl-T でファイル選択
+plugins=(… zsh-fzf-history-search)
+
+# zoxide は shell 設定の最後で初期化する（_ZO_DOCTOR 警告回避）
+eval "$(zoxide init --cmd cd zsh)"
