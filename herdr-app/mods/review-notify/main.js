@@ -442,10 +442,28 @@ export default class Reviews extends View {
       }
       out.push(this.listRow(t, c, pr, i));
     });
-    return v_flex().id("rn-list").w(460).h_full().flex_none().min_h(0).border_r(1).border_color(t.border)
-      .overflow_y_scrollbar().px(6).pb(8).gap(1)
-      .children(out)
-      .when(!rows.length && !this.error, (e) => e.child(div().p(12).text_color(t.dim).child("レビュー依頼はありません")));
+    // リスクのタブと並び順は一覧の上に置く（全幅の段にすると、右の詳細の上も 1 段ぶん空く）
+    return v_flex().w(460).h_full().flex_none().min_h(0).border_r(1).border_color(t.border)
+      .child(this.filters(t))
+      .child(v_flex().id("rn-list").flex_1().min_h(0).overflow_y_scrollbar().px(6).pb(8).gap(1)
+        .children(out)
+        .when(!rows.length && !this.error, (e) => e.child(div().p(12).text_color(t.dim).child("レビュー依頼はありません"))));
+  }
+
+  filters(t) {
+    const prs = this.data.prs;
+    return h_flex().flex_none().flex_wrap().px(10).py(8).gap(6).border_b(1).border_color(t.border)
+      .children(RISKS.map(([key, label]) => {
+        const n = key === "all" ? prs.length : prs.filter((p) => riskKey(p) === key).length, on = this.risk === key;
+        return div().id(`rn-risk-${key}`).px(10).py(2).rounded(12).text_size(11.5).border_1()
+          .border_color(on ? t.accent : t.border).text_color(on ? t.accent : n ? t.muted : t.dim)
+          .when(Boolean(n) || key === "all", (e) => e.cursor_pointer().on_click((_e, cx) => this.setRisk(key, cx)))
+          .child(`${label} ${n}`);
+      }))
+      .child(div().flex_1())
+      .child(div().id("rn-sort").px(10).py(2).rounded(12).text_size(11.5).border_1().border_color(t.border).text_color(t.muted)
+        .cursor_pointer().hover((s) => s.bg(t.hover)).on_click((_e, cx) => this.cycleSort(cx))
+        .child(h_flex().gap(6).items_center().child(NF.sort).child(SORTS[this.sort][1])));
   }
 
   finding(t, c, pr, rv, f, i) {
@@ -621,18 +639,6 @@ export default class Reviews extends View {
         .child(div().flex_1().truncate().text_size(12).text_color(t.muted)
           .child(`${prs.length} review request${prs.length === 1 ? "" : "s"}${at ? ` · Updated ${at.getUTCMonth() + 1}/${at.getUTCDate()} ${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} JST` : ""}`))
         .child(div().text_size(11).text_color(t.dim).child("J/K PR · j/k Finding · p Post · d Drop · u Undo · a Ask · ⏎ Redline · o GitHub · tab Risk · s Sort · r · Esc")))
-      .child(h_flex().flex_none().px(12).py(8).gap(6).border_b(1).border_color(t.border)
-        .children(RISKS.map(([key, label]) => {
-          const n = key === "all" ? prs.length : prs.filter((p) => riskKey(p) === key).length, on = this.risk === key;
-          return div().id(`rn-risk-${key}`).px(10).py(2).rounded(12).text_size(11.5).border_1()
-            .border_color(on ? t.accent : t.border).text_color(on ? t.accent : n ? t.muted : t.dim)
-            .when(Boolean(n) || key === "all", (e) => e.cursor_pointer().on_click((_e, cx) => this.setRisk(key, cx)))
-            .child(`${label} ${n}`);
-        }))
-        .child(div().flex_1())
-        .child(div().id("rn-sort").px(10).py(2).rounded(12).text_size(11.5).border_1().border_color(t.border).text_color(t.muted)
-          .cursor_pointer().hover((s) => s.bg(t.hover)).on_click((_e, cx) => this.cycleSort(cx))
-          .child(h_flex().gap(6).items_center().child(NF.sort).child(`Sort: ${SORTS[this.sort][1]} (s)`))))
       .when(Boolean(this.error), (e) => e.child(div().px(16).py(6).text_size(11.5).text_color(t.ansi1).child(this.error)))
       .child(h_flex().flex_1().min_h(0).items_start().child(this.list(t, c)).child(this.detail(t, c)));
   }
