@@ -47,7 +47,7 @@ export class Review {
     this.refresh(cx, true);
     if (this.r.number) this.loadRequest(cx);
     // Cheap check: reload when HEAD or the target moves (new commits, a rebase).
-    cx.timer.every(5000, (cx) => this.refresh(cx, false));
+    cx.timer.every(5000, (cx) => { if (this.pullDrafts()) cx.notify(); this.refresh(cx, false); });
     // The request itself, less often: a push by its author shows Update.
     if (this.r.number) cx.timer.every(60000, (cx) => this.pollRequest(cx));
   }
@@ -114,6 +114,7 @@ export class Review {
         if (moved) this.refresh(cx, true);
         this.drafts = drafts ? drafts.map((x) => ({ id: x.id, body: x.body, anchor: { path: x.path, kind: x.kind, old: x.old, new: x.new } }))
           : (shared(this.draftKey) ?? []);
+        this.known = new Set(this.drafts.map((x) => x.id));
         if (this.drafts.length) this.reviewing = true;
         this.requestError = null;
       } catch (e) { this.requestError = msg(e); }
@@ -420,7 +421,23 @@ export class Review {
     });
   }
 
-  saveLocal() { if (this.r.provider === "github") setShared(this.draftKey, this.drafts); }
+  saveLocal() {
+    if (this.r.provider !== "github") return;
+    this.pullDrafts();
+    setShared(this.draftKey, this.drafts);
+  }
+
+  // Pending comments another mod added meanwhile (review-notify's dialog Accepts council findings into
+  // the same shared key): take them in rather than write over them. Ones this pane has seen and
+  // removed (`known`) stay removed. True when something came in.
+  pullDrafts() {
+    if (this.r.provider !== "github" || !this.known) return false;
+    const theirs = (shared(this.draftKey) ?? []).filter((d) => !this.known.has(d.id));
+    for (const d of [...theirs, ...this.drafts]) this.known.add(d.id);
+    if (!theirs.length) return false;
+    this.drafts = [...this.drafts, ...theirs]; this.reviewing = true;
+    return true;
+  }
 
   single(cx) {
     const body = this.box.value().trim(), a = this.anchor();

@@ -110,6 +110,8 @@ export function gitError(text) {
 // sidebar nests it under the repo). Forks are fetched from the request's head ref.
 // A failed fetch never passes silently: with a local copy to fall back on it is returned in
 // `warnings` (the review would show stale code); without one it is the error.
+// ~/Projects/mine/review-notify/redline-open.py does the same (and launcher.js start()) from
+// outside Herdr: change both together, or the two pick different worktrees.
 export async function checkout(repo, home, { branch, target, number, fork }) {
   const { main, on } = repo;
   const warnings = [];

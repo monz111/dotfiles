@@ -2,6 +2,7 @@ import { div } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, TextareaState, Textarea, TextView, Popover } from "gpui-base";
 import {
   exec, focused, spaces, panes, theme, props, run, closeOverlay, openOverlay, knownAgents, home, shared, setShared, notify, agents, hc,
+  readTextFile, writeTextFile,
 } from "herdr";
 import { repoAt, listRequests, listBranches, checkout, git, msg } from "./lib.js";
 import * as host from "./hosting.js";
@@ -10,6 +11,19 @@ import { overview, pipelineView, JOB_LOOK } from "./panels.js";
 import { WATCH, HEARTBEAT } from "./watch.js";
 
 const AGENT_KEY = "redline.agent"; // shared: the option id last picked
+
+// The council review-notify ran on its own (~/Projects/mine/review-notify/out/reviews/<repo>-<n>.council.json)
+// becomes this worktree's findings, when there are none yet and it was for this very commit.
+// review-notify's redline-open.py does the same for a review opened from outside.
+async function seedFindings(repo, row, folder, findings) {
+  if (row.kind !== "request" || repo.on) return;
+  try {
+    if ((await readTextFile(findings)) !== null) return;
+    const rec = JSON.parse((await readTextFile(`${home()}/Projects/mine/review-notify/out/reviews/${repo.name}-${row.number}.council.json`)) ?? "null");
+    if (!rec || rec.error || !Array.isArray(rec.findings) || rec.head !== (await git(folder, ["rev-parse", "HEAD"])).out) return;
+    await writeTextFile(findings, JSON.stringify(rec.findings), null);
+  } catch { /* none to bring in */ }
+}
 
 // What a review tab can open beside the diff: an agent to talk to, an agent started on an
 // automated review (a Claude skill as its first message), or a plain shell.
@@ -352,6 +366,7 @@ export class Launcher {
         const what = row.kind === "request" ? `${repo.provider === "github" ? "pull" : "merge"} request ${this.mark()}${row.number} (${row.title})` : `branch ${row.branch}`;
         const gitDir = await git(co.path, ["rev-parse", "--absolute-git-dir"], repo.on);
         const findings = gitDir.ok ? `${gitDir.out}/redline-findings.json` : null;
+        if (findings) await seedFindings(repo, row, co.path, findings);
         // An agent-less choice can't take a first message: use the first agent for one.
         const agentOpt = taskOverride && !opt?.argv ? this.options.find((o) => o.argv) : opt;
         const argv = agentOpt?.argv;
