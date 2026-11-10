@@ -52,6 +52,7 @@ const GLOW_FROM = 0.6;
 const glow = (color) => layer(135, Background.stop(color + "00", GLOW_FROM), Background.stop(color + "40", 1));
 // 指摘のカードの地に敷く、ごく薄い斜線（線の太さ 1・間隔 7）
 const stripes = (color) => window.paint_path(RECT(), Background.pattern_slash(color, 1, 7)).absolute().top(0).left(0).size_full();
+const GH_GREEN = "#238636";
 const tint = (color, alpha = "24") => (/^#[0-9a-f]{6}$/i.test(color || "") ? color + alpha : color);
 // 一覧の並び順。s キーかボタンで切り替える。先頭が既定（リポジトリごと・その中でリスクが低い順・レビュー依頼が古い順）
 const RISK_RANK = { 低: 0, 中: 1, 高: 2 };  // 記載なしは最後
@@ -98,18 +99,23 @@ const askPrompt = (pr, f) => `PR ${pr.url}（${pr.title}）の AI レビュー�
   + `${shown(f.body || "")}\n\nまず該当箇所のコードと PR の差分（gh pr diff ${pr.url}）を読み、指摘が妥当かを短く説明してください。`
   + `コードは変更せず、そのあと私の質問を待ってください。`;
 
+// 切り捨てる（四捨五入だと 59 分半が「60分前」、23 時間半が「24時間前」になる）
 function ago(iso) {
   const s = (Date.now() - Date.parse(iso)) / 1000;
   if (!(s >= 0)) return "";
-  return s < 3600 ? `${Math.max(1, Math.round(s / 60))}分前` : s < 86400 ? `${Math.round(s / 3600)}時間前` : `${Math.round(s / 86400)}日前`;
+  return s < 3600 ? `${Math.max(1, Math.floor(s / 60))}分前` : s < 86400 ? `${Math.floor(s / 3600)}時間前` : `${Math.floor(s / 86400)}日前`;
 }
+
+// exec が例外になった（主に時間切れ）ときは、GitHub に届いたかどうか分からない。押し直して二重に送らないよう添える
+const UNSURE = "(It may have gone through. Check GitHub before trying again.)";
 
 export default class Reviews extends View {
   init(_props, cx) {
     this.handle = cx.focus_handle();
     this.text = undefined; this.data = { prs: [] }; this.at = 0; this.f = 0; this.risk = "all"; this.sort = 0;
     this.error = null; this.notes = new Map(); this.busy = null;  // notes: PR の URL → そのPRへの操作の結果 { text, ok }
-    this.confirm = null; this.confirmPost = null; this.posting = false; this.approving = false; this.approved = new Set();
+    this.confirm = null; this.confirmPost = null; this.confirmCouncil = null; this.posting = false; this.approving = false; this.starting = false;
+    this.approved = new Set(); this.rebuilding = false;
     this.handle.focus();
     cx.timer.after(300, () => this.handle.focus());
     this.load(cx);
@@ -122,9 +128,13 @@ export default class Reviews extends View {
   // review-notify.py は平日 9〜17 時しか動かないので、Redline で開いて worktree ができた（Post・Drop が使える）、
   // Redline で council を実行した、などを、開いたときにすぐ出すため
   rebuild(cx) {
+    // r を連打しても、board.json を書く review-notify.py を同時に何本も走らせない
+    if (this.rebuilding) return;
+    this.rebuilding = true;
     cx.spawn(async (cx) => {
       try { await exec("/usr/bin/python3", ["-I", `${DIR}/review-notify.py`, "--board"], { timeout: 60000 }); } catch { /* 前の一覧のまま */ }
-      this.load(cx);
+      this.rebuilding = false;
+      this.text = undefined; this.load(cx);
     });
   }
 
@@ -136,7 +146,7 @@ export default class Reviews extends View {
       try { text = await readTextFile(BOARD); } catch { text = null; }
       if (text === this.text) return;
       this.text = text;
-      const selected = this.current()?.url;
+      const prev = this.current(), selected = prev?.url, head = prev?.review?.head;
       try {
         this.data = text ? JSON.parse(text) : { prs: [] };
         this.error = text ? null : `${BOARD} がありません。review-notify.py が一度動くとできます。`;
@@ -144,6 +154,11 @@ export default class Reviews extends View {
       // 読み直しで PR が増減しても、選んでいた PR を選んだままにする
       const i = this.rows().findIndex((p) => p.url === selected);
       if (i >= 0) this.at = i;
+      // 選んでいた PR が消えた（別の PR が選ばれる）か、再レビューで結果が変わったら、指摘の選択と押しかけの確認を戻す。
+      // 戻さないと、前の結果を見て押しかけた「Really approve?」が新しい head をそのまま承認する
+      if (selected && (i < 0 || this.current()?.review?.head !== head)) { this.f = 0; this.disarm(); }
+      // 指摘が減って、選んでいた指摘がなくなったとき（詳細が「↑ n earlier」だけで空になる）
+      if (this.f >= (this.current()?.review?.findings?.length ?? 0)) this.f = 0;
       cx.notify();
     });
   }
@@ -245,7 +260,7 @@ export default class Reviews extends View {
       if (r?.code === 0) {
         this.setFindingState(rv, f, "accepted");
         this.report(pr, "Comment posted", `Comment posted to #${pr.number}.`, true);
-      } else this.report(pr, "Couldn't post the comment", `Couldn't post: ${failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim()}`, false);
+      } else this.report(pr, "Couldn't post the comment", `Couldn't post: ${failed ? `${failed} ${UNSURE}` : (r.stderr || r.stdout || `exit ${r.code}`).trim()}`, false);
       cx.notify();
     });
   }
@@ -287,16 +302,15 @@ export default class Reviews extends View {
     if (this.confirm !== pr.url) { this.confirm = pr.url; cx.notify(); return; }
     this.confirm = null; this.busy = pr.url; this.approving = true; this.notes.delete(pr.url); cx.notify();
     const repo = pr.url.replace(/^https:\/\/github\.com\/|\/pull\/\d+$/g, "");
+    // exec は時間切れでも例外になるので、gh の場所を順に試す作りだと承認を二重に送りうる。accept() と同じく PATH を足した 1 回の実行にする
+    const script = 'export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; gh pr review "$1" -R "$2" --approve';
     cx.spawn(async (cx) => {
-      let r = null;
-      // mods/redline/lib.js の cli() と同じく、起動できなかったときだけ次の場所を試す（送信を二重にしない）
-      for (const gh of ["gh", "/opt/homebrew/bin/gh", "/usr/local/bin/gh"]) {
-        try { r = await exec(gh, ["pr", "review", String(pr.number), "-R", repo, "--approve"], { timeout: 60000 }); } catch { r = null; continue; }
-        if (r.code !== 127) break;
-      }
+      let r = null, failed = null;
+      try { r = await exec("sh", ["-c", script, "sh", String(pr.number), repo], { timeout: 60000 }); }
+      catch (e) { failed = String(e?.message ?? e); }
       this.busy = null; this.approving = false;
       if (r?.code === 0) { this.approved.add(pr.url); this.report(pr, "Approved", `Approved #${pr.number}.`, true); }
-      else this.report(pr, "Couldn't approve", `Couldn't approve: ${(r?.stderr || r?.stdout || "gh not found").trim()}`, false);
+      else this.report(pr, "Couldn't approve", `Couldn't approve: ${failed ? `${failed} ${UNSURE}` : (r.stderr || r.stdout || `exit ${r.code}`).trim()}`, false);
       cx.notify();
     });
   }
@@ -317,9 +331,10 @@ export default class Reviews extends View {
   }
 
   // color（テーマの ansi の色）を付けると、その色の枠と文字に薄い背景を敷く。primary なら、その色で塗る（「Really …?」など）
-  button(t, id, label, onClick, { primary = false, disabled = false, icon = null, color = null } = {}) {
+  // fg は primary のときの文字の色（既定は、color で塗るなら地の色）
+  button(t, id, label, onClick, { primary = false, disabled = false, icon = null, color = null, fg = null } = {}) {
     return div().id(id).flex_none().h(28).px(12).flex().items_center().gap(6).rounded(6).text_size(12)
-      .when(primary, (e) => e.bg(disabled ? t.raised : color ?? t.solid).text_color(disabled ? t.dim : color ? t.popover : t.solid_foreground))
+      .when(primary, (e) => e.bg(disabled ? t.raised : color ?? t.solid).text_color(disabled ? t.dim : fg ?? (color ? t.popover : t.solid_foreground)))
       .when(!primary && Boolean(color) && !disabled, (e) => e.border_1().border_color(color).bg(tint(color)).text_color(color))
       .when(!primary && !(color && !disabled), (e) => e.border_1().border_color(t.border).text_color(disabled ? t.dim : t.foreground))
       .when(!disabled, (e) => e.cursor_pointer().hover((s) => s.opacity(0.85)).on_click((_e, cx) => onClick(cx)))
@@ -466,9 +481,12 @@ export default class Reviews extends View {
         .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
         .child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
           { disabled: Boolean(this.busy), icon: NF.ask, color: t.ansi5 })))
+      // Drop した指摘は本文を畳み、タイトル（本文の最初の行。「### 」は外す）の 1 行だけにする
+      .when(state === "dropped", (e) => e.child(div().min_w(0).truncate().text_size(12).font_semibold()
+        .child((f.body || "").split("\n").find((l) => l.trim())?.replace(/^#+\s*/, "") ?? "")))
       // id は指摘ごとに変える（位置で付けると、指摘が入れ替わったとき前の本文のまま残るおそれがある）
-      .child(div().text_size(12).child(TextView.markdown(`rn-f-${pr.repo_name}-${pr.number}-${rv.head}-${f.path}:${f.line}:${hash(f.body)}`,
-        shown(f.body || " "))));
+      .when(state !== "dropped", (e) => e.child(div().text_size(12).child(TextView.markdown(`rn-f-${pr.repo_name}-${pr.number}-${rv.head}-${f.path}:${f.line}:${hash(f.body)}`,
+        shown(f.body || " ")))));
   }
 
   review(t, c, pr) {
@@ -544,7 +562,9 @@ export default class Reviews extends View {
           (cx) => this.runCouncil(pr, cx), { primary: this.confirmCouncil === pr.url, disabled: Boolean(this.busy) || pr.council_requested, icon: NF.council })))
           .child(this.button(t, "rn-approve", this.approving && this.busy === pr.url ? "Approving…"
             : this.confirm === pr.url ? "Really approve?" : blocker === "Approved" ? "Approved" : "Approve",
-          (cx) => this.approve(pr, cx), { primary: this.confirm === pr.url, disabled: Boolean(blocker) || Boolean(this.busy), icon: NF.check }))
+          // 押せるときは GitHub の Approve・Merge と同じ緑の地に白い文字（Primer の btn-primary、ダークテーマの #238636）
+          (cx) => this.approve(pr, cx), { primary: !blocker && !this.busy, disabled: Boolean(blocker) || Boolean(this.busy), icon: NF.check,
+            color: GH_GREEN, fg: "#ffffff" }))
           .when(Boolean(blocker) && blocker !== "Approved", (e) => e.child(div().flex_1().min_w(0).truncate().text_size(11)
             .text_color(t.dim).child(blocker)))))
       // そのPRへの操作の結果だけを出す（別のPRに移ると、そのPRのものに変わる）
@@ -586,10 +606,13 @@ export default class Reviews extends View {
         } else if (k === "enter") this.openRedline(this.current(), cx);
         else if (k === "o" && this.current()) cx.open_url(this.current().url);
         else if (k === "tab") {
-          const i = RISKS.findIndex(([key]) => key === this.risk);
-          this.setRisk(RISKS[(i + (m.shift ? -1 : 1) + RISKS.length) % RISKS.length][0], cx);
+          // クリックと同じく、0 件のリスクのタブは飛ばす（All は 0 件でも止まる）
+          const n = RISKS.length, step = m.shift ? -1 : 1;
+          let i = RISKS.findIndex(([key]) => key === this.risk);
+          do i = (i + step + n) % n; while (i && !this.data.prs.some((p) => riskKey(p) === RISKS[i][0]));
+          this.setRisk(RISKS[i][0], cx);
         } else if (k === "s") this.cycleSort(cx);
-        else if (k === "r") { this.text = undefined; this.rebuild(cx); }
+        else if (k === "r") this.rebuild(cx);
         else return;
         cx.stop_propagation();
       })
