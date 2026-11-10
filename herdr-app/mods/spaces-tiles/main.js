@@ -30,14 +30,21 @@ const RAIL_CELL = 32;
 
 // The tile that repo-launcher (Cmd+P) keeps for a repository: { emoji, color }.
 // Its keys are the repository path, lower case except on Linux (repo-launcher's pathKey).
-function launcherTile(g) {
-  if (!g?.repo) return {};
-  const [on, gitDir] = JSON.parse(g.repo);
-  if (on || !gitDir.endsWith("/.git")) return {};
-  const path = gitDir.slice(0, -5);
-  const key = window()?.platform === "linux" ? path : path.toLowerCase();
+// `folders`: where the space is now and where it was made, for a plain folder
+// (no git) that repo-launcher lists; the first one with a tile wins.
+function launcherTile(g, ...folders) {
+  let paths = folders.filter(Boolean).map((f) => f.replace(/\/+$/, ""));
+  if (g?.repo) {
+    const [on, gitDir] = JSON.parse(g.repo);
+    if (on || !gitDir.endsWith("/.git")) return {};
+    paths = [gitDir.slice(0, -5)];
+  }
   const s = shared("repo-launcher.settings") ?? {};
-  return { emoji: s.emojis?.[key] || "", color: s.tileColors?.[key] || null };
+  for (const path of paths) {
+    const key = window()?.platform === "linux" ? path : path.toLowerCase();
+    if (s.emojis?.[key] || s.tileColors?.[key]) return { emoji: s.emojis?.[key] || "", color: s.tileColors?.[key] || null };
+  }
+  return {};
 }
 
 // Lightness 0-100 of `#rrggbb`, so a letter on a light tile can be dark.
@@ -282,7 +289,7 @@ export default class Spaces extends View {
     const sp = spaces(), ps = panes();
     const ready = (w) => this.shown.has(w.id) || where(w, ps) in this.git || Date.now() - (this.born[w.id] ??= Date.now()) > 1500;
     for (const w of sp) if (!this.shown.has(w.id) && ready(w)) this.shown.add(w.id);
-    const list = sp.map((w, i) => ({ w, i, g: this.git[where(w, ps)] ?? null }));
+    const list = sp.map((w, i) => ({ w, i, at: place(w, ps), g: this.git[where(w, ps)] ?? null }));
     const mains = new Set(list.filter((r) => r.g && !r.g.linked).map((r) => r.g.repo));
     const nested = (r) => r.g?.linked && mains.has(r.g.repo);
     const out = [];
@@ -397,7 +404,7 @@ export default class Spaces extends View {
       .when(g.behind > 0, (el) => el.child(div().flex_none().text_color(t.ansi1).child(`\u2193${g.behind}`)));
   }
 
-  row({ w, i, g, tree }, t) {
+  row({ w, i, at, g, tree }, t) {
     const on = w.active;
     const fromIndex = this.pressed === null ? -1 : spaces().findIndex(s => s.id === this.pressed);
     const colors = shared("space.colors") ?? {};
@@ -449,7 +456,7 @@ export default class Spaces extends View {
           .items_center()
           .when(Boolean(tree), el => el.pl(22).child(svg("mods/workspace-chrome/branch.svg").size(13).text_color(t.dim)))
           .when(!tree, el => {
-            const tile = launcherTile(g);
+            const tile = launcherTile(g, at, w.folder);
             const bg = tile.color ?? fill;
             return el.child(h_flex().size(18).flex_none().rounded(5).bg(bg).items_center().justify_center()
               .text_size(tile.emoji ? 12 : 10.5).font_bold().text_color(lightness(bg) > 70 ? "#1a1a1a" : "#ffffff")
