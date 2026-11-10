@@ -80,7 +80,6 @@ const aiLabel = (pr) => (pr.ai === "pending" && pr.review ? "Re-review pending" 
 // AI レビューしない理由（review-notify.py の skip_reason()）
 const SKIP_REASONS = {
   repo: "This repository is excluded from AI review (SKIP_REVIEW_REPOS).",
-  sandbox: "Sandbox repository: only Medium / High risk PRs are reviewed, by council.",
   small: "Small change: 5 lines or fewer are not AI reviewed (SMALL_PR_LINES).",
   waiting: "You already reviewed this PR. It is not AI reviewed until the author requests a re-review.",
 };
