@@ -65,6 +65,7 @@ const SKIP_REASONS = {
   repo: "This repository is excluded from AI review (SKIP_REVIEW_REPOS).",
   sandbox: "Sandbox repository: only Medium / High risk PRs are reviewed, by council.",
   small: "Small change: 5 lines or fewer are not AI reviewed (SMALL_PR_LINES).",
+  waiting: "You already reviewed this PR. It is not AI reviewed until the author requests a re-review.",
 };
 
 // council の指摘の Accept・Drop は、Redline のレビュー画面と同じ記録に書く（mods/redline/diff.js の findingId・
@@ -141,7 +142,7 @@ export default class Reviews extends View {
   current() { return this.rows()[this.at] ?? null; }
 
   // 選ぶ PR が変わるときは、押しかけの「Really …?」を戻す（戻ってきて 1 回押しただけで送らないように）
-  disarm() { this.confirm = null; this.confirmPost = null; }
+  disarm() { this.confirm = null; this.confirmPost = null; this.confirmCouncil = null; }
 
   move(step, cx) {
     const n = this.rows().length;
@@ -237,6 +238,25 @@ export default class Reviews extends View {
     const left = rv.findings.filter((f) => !(rv.source === "council" && rv.folder && findingState(rv, f) === "dropped"));
     if (left.length && rv.source === "council" && !rv.folder) return `${left.length} findings (open in Redline to drop)`;
     return left.length ? `${left.length} findings not dropped` : null;
+  }
+
+  // council は費用がかかるので、Approve と同じく 2 回押して頼む（リスク中・高の PR だけ。review-notify.py の --council）。
+  // 実行は review-notify.py --review が裏で進め、終わるとデスクトップ通知が出て、一覧も書き直される
+  runCouncil(pr, cx) {
+    if (this.busy || pr.council_requested) return;
+    if (this.confirmCouncil !== pr.url) { this.confirmCouncil = pr.url; cx.notify(); return; }
+    this.confirmCouncil = null; this.busy = pr.url; this.starting = true; this.notes.delete(pr.url); cx.notify();
+    cx.spawn(async (cx) => {
+      let r = null, failed = null;
+      try { r = await exec("/usr/bin/python3", ["-I", `${DIR}/review-notify.py`, "--council", pr.url], { timeout: 60000 }); }
+      catch (e) { failed = String(e?.message ?? e); }
+      this.busy = null; this.starting = false;
+      if (r?.code === 0) {
+        this.report(pr, "Council started", "Council started. You'll get a notification when it's done.", true);
+        this.text = undefined; this.load(cx);  // 「Council running…」をすぐ出す
+      } else this.report(pr, "Couldn't start council", `Couldn't start council: ${failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim()}`, false);
+      cx.notify();
+    });
   }
 
   // GitHub の承認は取り消せないので、2 回押して送る
@@ -471,9 +491,12 @@ export default class Reviews extends View {
           .when(Boolean(meta), (e) => e.child(div().flex_1().min_w(0).truncate()
             .text_color(rv.source === "council" ? t.ansi5 : t.muted).child(meta))))
         .child(h_flex().gap(8).pt(4)
-          .child(this.button(t, "rn-redline", this.busy === pr.url && !this.posting && !this.approving ? "Opening…" : "Open in Redline ⏎", (cx) => this.openRedline(pr, cx),
+          .child(this.button(t, "rn-redline", this.busy === pr.url && !this.posting && !this.approving && !this.starting ? "Opening…" : "Open in Redline ⏎", (cx) => this.openRedline(pr, cx),
             { primary: true, disabled: Boolean(this.busy) }))
           .child(this.button(t, "rn-github", "GitHub o", (cx) => cx.open_url(pr.url)))
+          .when(pr.risk === "中" || pr.risk === "高", (e) => e.child(this.button(t, "rn-council", pr.council_requested ? "Council running…"
+            : this.starting && this.busy === pr.url ? "Starting…" : this.confirmCouncil === pr.url ? "Really run council?" : "Run council",
+          (cx) => this.runCouncil(pr, cx), { primary: this.confirmCouncil === pr.url, disabled: Boolean(this.busy) || pr.council_requested })))
           .child(this.button(t, "rn-approve", this.approving && this.busy === pr.url ? "Approving…"
             : this.confirm === pr.url ? "Really approve?" : blocker === "Approved" ? "✓ Approved" : "Approve",
           (cx) => this.approve(pr, cx), { primary: this.confirm === pr.url, disabled: Boolean(blocker) || Boolean(this.busy) }))
