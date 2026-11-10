@@ -17,7 +17,7 @@
     "cmd-[": "agent.prev",
     "cmd-shift-l": "layout.switch",
     "cmd-n": "space.new",
-    "cmd-p": "mod.open:picker",
+    "cmd-p": "mod.open:repo-launcher",
     "cmd-shift-p": "app.palette",
     "cmd-shift-h": "mod.open:mods-hub",
     "cmd-shift-f": "mod.open:redline",
