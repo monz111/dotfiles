@@ -32,11 +32,42 @@ const launcherSetting = (field, path) => (shared("repo-launcher.settings")?.[fie
 // out/board.json に書く。この mod はそれを表示し、Redline のレビュー画面や GitHub を開くだけ。
 const DIR = `${home()}/Projects/mine/review-notify`;
 const BOARD = `${DIR}/out/board.json`;
-const RISKS = [["all", "すべて"], ["低", "リスク 低"], ["中", "リスク 中"], ["高", "リスク 高"], ["none", "記載なし"]];
+const RISKS = [["all", "All"], ["低", "Low"], ["中", "Medium"], ["高", "High"], ["none", "No risk"]];
+const RISK_EN = { 低: "Low", 中: "Medium", 高: "High" };
 const riskKey = (pr) => pr.risk ?? "none";
+// 色を薄く敷く背景（mods/mods-hub/ui.js の tint と同じ）
+const tint = (color, alpha = "24") => (/^#[0-9a-f]{6}$/i.test(color || "") ? color + alpha : color);
+// 一覧の並び順。s キーかボタンで切り替える。先頭が既定（リポジトリごと・その中でリスクが低い順・レビュー依頼が古い順）
+const RISK_RANK = { 低: 0, 中: 1, 高: 2 };  // 記載なしは最後
+const byRisk = (a, b) => (RISK_RANK[a.risk] ?? 3) - (RISK_RANK[b.risk] ?? 3);
+const requested = (pr) => pr.requested_at ?? pr.created_at;  // 古い board.json には requested_at がない
+const byRequested = (a, b) => requested(a).localeCompare(requested(b));
+const SORTS = [
+  ["repo", "Repo", (a, b) => a.repo_name.localeCompare(b.repo_name) || byRisk(a, b) || byRequested(a, b)],
+  ["risk", "Risk", (a, b) => byRisk(a, b) || byRequested(a, b)],
+  ["oldest", "Oldest", byRequested],
+  ["newest", "Newest", (a, b) => byRequested(b, a)],
+];
+// review-notify.py が日本語で出す値の、表示用の英語（中身の値は AI への指示でも使うので、表示のときだけ置き換える）
+const EN = {
+  reason: { チーム宛て: "Team", リポジトリ指定: "Watched repo" },  // 自分宛ては null、Ready for review はそのまま
+  item: { 正しさ: "Correctness", 対応漏れ: "Missed changes", デプロイと互換性: "Deploy & compat",
+    セキュリティと混入: "Security & leaks", コピー設置: "Copy deploy" },
+  severity: { 重大: "Critical", 確認: "Check", 提案: "Suggestion" },
+};
+const en = (kind, v) => EN[kind][v] ?? v;
+// AI の状態（board.json の ai）
+const AI_LABELS = { ng: "Needs fixes", warn: "Needs check", ok: "No issues", pending: "Review pending", error: "AI failed", skip: "Skipped" };
+const aiLabel = (pr) => (pr.ai === "pending" && pr.review ? "Re-review pending" : AI_LABELS[pr.ai] ?? pr.ai);
+// AI レビューしない理由（review-notify.py の skip_reason()）
+const SKIP_REASONS = {
+  repo: "This repository is excluded from AI review (SKIP_REVIEW_REPOS).",
+  sandbox: "Sandbox repository: only Medium / High risk PRs are reviewed, by council.",
+  small: "Small change: 5 lines or fewer are not AI reviewed (SMALL_PR_LINES).",
+};
 
 // council の指摘の Accept・Drop は、Redline のレビュー画面と同じ記録に書く（mods/redline/diff.js の findingId・
-// acceptFinding・setFindingState）。Accept は GitHub に出す前の保留中のコメントで、送るのは Redline の Submit review。
+// setFindingState）。Accept はその場で GitHub の行コメントとして投稿する（Redline の保留中のコメントは使わない）。
 // 片方を変えたら、もう片方も合わせる。
 const findingId = (f) => `${f.path}:${f.side === "old" ? "old" : "new"}:${Number(f.line)}:${String(f.body).slice(0, 80)}`;
 const findingsKey = (rv) => `redline.findings.${rv.folder}`;
@@ -53,9 +84,9 @@ function ago(iso) {
 export default class Reviews extends View {
   init(_props, cx) {
     this.handle = cx.focus_handle();
-    this.text = undefined; this.data = { prs: [] }; this.at = 0; this.risk = "all";
-    this.error = null; this.notes = new Map(); this.busy = null;  // notes: PR の URL → そのPRへの操作の結果の文
-    this.confirm = null; this.approved = new Set();
+    this.text = undefined; this.data = { prs: [] }; this.at = 0; this.risk = "all"; this.sort = 0;
+    this.error = null; this.notes = new Map(); this.busy = null;  // notes: PR の URL → そのPRへの操作の結果 { text, ok }
+    this.confirm = null; this.confirmPost = null; this.posting = false; this.approving = false; this.approved = new Set();
     this.handle.focus();
     cx.timer.after(300, () => this.handle.focus());
     this.load(cx);
@@ -94,20 +125,29 @@ export default class Reviews extends View {
     });
   }
 
-  // リスクのタブで絞り、リポジトリごと・新しい PR から並べる
+  // リスクのタブで絞り、選んだ並び順で並べる
   rows() {
-    return this.data.prs.filter((p) => this.risk === "all" || riskKey(p) === this.risk)
-      .sort((a, b) => a.repo_name.localeCompare(b.repo_name) || b.number - a.number);
+    return this.data.prs.filter((p) => this.risk === "all" || riskKey(p) === this.risk).sort(SORTS[this.sort][2]);
+  }
+
+  cycleSort(cx) {
+    const url = this.current()?.url;
+    this.sort = (this.sort + 1) % SORTS.length;
+    this.at = Math.max(0, this.rows().findIndex((p) => p.url === url));
+    this.disarm(); cx.notify();
   }
 
   current() { return this.rows()[this.at] ?? null; }
 
+  // 選ぶ PR が変わるときは、押しかけの「Really …?」を戻す（戻ってきて 1 回押しただけで送らないように）
+  disarm() { this.confirm = null; this.confirmPost = null; }
+
   move(step, cx) {
     const n = this.rows().length;
-    if (n) { this.at = (this.at + step + n) % n; cx.notify(); }
+    if (n) { this.at = (this.at + step + n) % n; this.disarm(); cx.notify(); }
   }
 
-  setRisk(key, cx) { this.risk = key; this.at = 0; cx.notify(); }
+  setRisk(key, cx) { this.risk = key; this.at = 0; this.disarm(); cx.notify(); }
 
   // redline-open.py が Redline の Start review と同じ手順でレビュー画面を開く（もう開いていればそこへ移る）
   openRedline(pr, cx) {
@@ -122,7 +162,7 @@ export default class Reviews extends View {
       } catch (e) { failed = String(e?.message ?? e); }
       this.busy = null;
       if (r?.code === 0) return this.close();
-      this.notes.set(pr.url, failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim());
+      this.notes.set(pr.url, { text: failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim() });
       cx.notify();
     });
   }
@@ -131,27 +171,40 @@ export default class Reviews extends View {
     setShared(findingsKey(rv), { ...(shared(findingsKey(rv)) ?? {}), [findingId(f)]: state });
   }
 
-  // 削除行（old）は旧ファイルの行、それ以外は新ファイルの行へのコメントになる（GitHub の LEFT・RIGHT）
+  // 削除行（old）は旧ファイルの行、それ以外は新ファイルの行へのコメントになる（GitHub の LEFT・RIGHT）。
+  // 送り方は mods/redline/hosting.js の lineComment()・send() と同じ（本文は stdin で渡す）
+  // 投稿は取り消せないので、Approve と同じく 2 回押して送る
   accept(pr, rv, f, cx) {
-    const anchor = f.side === "old" ? { path: f.path, kind: "-", old: Number(f.line), new: null }
-      : { path: f.path, kind: "+", old: null, new: Number(f.line) };
-    const draft = { id: `local-${Date.now()}`, local: true, body: f.body, anchor, head: rv.head };
-    setShared(draftKey(pr), [...(shared(draftKey(pr)) ?? []), draft]);
-    this.setFindingState(rv, f, "accepted");
-    this.notes.set(pr.url, `#${pr.number} の保留中のコメントに追加しました。GitHub に送るのは Redline の Submit review です。`);
-    cx.notify();
+    if (this.busy) return;
+    const key = `${pr.url} ${findingId(f)}`;
+    if (this.confirmPost !== key) { this.confirmPost = key; cx.notify(); return; }
+    this.confirmPost = null; this.busy = pr.url; this.posting = true; this.notes.delete(pr.url); cx.notify();
+    const repo = pr.url.replace(/^https:\/\/github\.com\/|\/pull\/\d+$/g, "");
+    const payload = { path: f.path, body: f.body, line: Number(f.line), side: f.side === "old" ? "LEFT" : "RIGHT", commit_id: rv.head };
+    const script = 'export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"; printf "%s" "$1" | gh api -X POST --input - "$2"';
+    cx.spawn(async (cx) => {
+      let r = null, failed = null;
+      try { r = await exec("sh", ["-c", script, "sh", JSON.stringify(payload), `repos/${repo}/pulls/${pr.number}/comments`], { timeout: 60000 }); }
+      catch (e) { failed = String(e?.message ?? e); }
+      this.busy = null; this.posting = false;
+      if (r?.code === 0) {
+        this.setFindingState(rv, f, "accepted");
+        this.notes.set(pr.url, { text: `Comment posted to #${pr.number}.`, ok: true });
+      } else this.notes.set(pr.url, { text: `Couldn't post: ${failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim()}` });
+      cx.notify();
+    });
   }
 
   // Approve できるのは、今の head のレビュー結果があり、残っている指摘がないとき
   // （指摘なし、または council の指摘がすべて Drop 済み）。保留中のコメントがあれば Redline の Submit review で出す。
   approveBlocker(pr) {
     const rv = pr.review;
-    if (this.approved.has(pr.url)) return "Approve 済み";
-    if (!rv || rv.error || rv.stale) return "今の head のレビュー結果がありません";
-    if ((shared(draftKey(pr)) ?? []).length) return "保留中のコメントがあります（Redline の Submit review で送る）";
+    if (this.approved.has(pr.url)) return "Approved";
+    if (!rv || rv.error || rv.stale) return "No review for the current head";
+    if ((shared(draftKey(pr)) ?? []).length) return "Pending comments (send with Submit review in Redline)";
     const left = rv.findings.filter((f) => !(rv.source === "council" && rv.folder && findingState(rv, f) === "dropped"));
-    if (left.length && rv.source === "council" && !rv.folder) return `指摘が ${left.length} 件あります（Redline で開くと Drop できます）`;
-    return left.length ? `Drop していない指摘が ${left.length} 件あります` : null;
+    if (left.length && rv.source === "council" && !rv.folder) return `${left.length} findings (open in Redline to drop)`;
+    return left.length ? `${left.length} findings not dropped` : null;
   }
 
   // GitHub の承認は取り消せないので、2 回押して送る
@@ -168,8 +221,8 @@ export default class Reviews extends View {
         if (r.code !== 127) break;
       }
       this.busy = null; this.approving = false;
-      if (r?.code === 0) { this.approved.add(pr.url); this.notes.set(pr.url, `#${pr.number} を Approve しました。`); }
-      else this.notes.set(pr.url, `Approve できませんでした: ${(r?.stderr || r?.stdout || "gh が見つかりません").trim()}`);
+      if (r?.code === 0) { this.approved.add(pr.url); this.notes.set(pr.url, { text: `Approved #${pr.number}.`, ok: true }); }
+      else this.notes.set(pr.url, { text: `Couldn't approve: ${(r?.stderr || r?.stdout || "gh not found").trim()}` });
       cx.notify();
     });
   }
@@ -226,24 +279,47 @@ export default class Reviews extends View {
     const sel = i === this.at;
     return h_flex().id(`rn-row-${pr.repo_name}-${pr.number}`).h(52).flex_none().px(10).gap(10).items_center().rounded(7)
       .cursor_pointer().when(sel, (e) => e.bg(t.selected)).hover((s) => s.bg(t.hover))
-      .on_click((e, cx) => { this.at = i; cx.notify(); if (e.click_count > 1) this.openRedline(pr, cx); })
+      .on_click((e, cx) => { if (this.at !== i) this.disarm(); this.at = i; cx.notify(); if (e.click_count > 1) this.openRedline(pr, cx); })
       .child(this.avatar(t, pr, 28))
       .child(v_flex().flex_1().min_w(0)
         .child(h_flex().gap(6).min_w(0)
           .child(div().flex_none().text_size(11.5).text_color(t.accent).child(`#${pr.number}`))
           .child(div().flex_1().min_w(0).truncate().text_size(12.5).text_color(t.foreground).child(pr.title)))
         .child(h_flex().gap(8).items_center().min_w(0).text_size(11).text_color(t.dim)
+          .when(Boolean(pr.risk), (e) => e.child(this.riskPill(t, c, pr.risk)))
           .child(div().flex_none().child(pr.author))
-          .child(this.stat(t, pr))
-          .child(div().flex_1().min_w(0).truncate().child(`${ago(pr.created_at)}${pr.reason ? ` · ${pr.reason}` : ""}`))))
-      .when(Boolean(pr.risk), (e) => e.child(this.badge(t, `リスク ${pr.risk}`, c.risk[pr.risk])))
-      .child(this.badge(t, pr.count ? `${pr.ai_label} ${pr.count}` : pr.ai_label, c.ai[pr.ai]));
+          .child(div().flex_1().min_w(0).truncate()
+            .child(`${SORTS[this.sort][0] === "repo" ? "" : `${pr.repo_name} · `}${ago(requested(pr))}${pr.reason ? ` · ${en("reason", pr.reason)}` : ""}`))))
+      .child(this.aiBadge(t, c, pr));
+  }
+
+  // リスクの色を薄く敷いた札
+  riskPill(t, c, risk) {
+    const color = c.risk[risk] ?? t.dim;
+    return div().flex_none().px(8).py(1).rounded_full().bg(tint(color, "33")).text_color(color)
+      .text_size(10.5).font_semibold().child(RISK_EN[risk] ?? "No risk");
+  }
+
+  // 指摘があれば件数だけ、AI 対象外は ⊘ だけ、それ以外は AI の状態のラベル
+  aiBadge(t, c, pr) {
+    if ((pr.ai === "ng" || pr.ai === "warn") && pr.count) {
+      const color = c.ai[pr.ai];
+      return div().flex_none().min_w(20).h(18).px(6).rounded_full().bg(color).text_color(t.popover)
+        .flex().items_center().justify_center().text_size(10.5).font_bold().child(String(pr.count));
+    }
+    if (pr.ai === "skip") return div().flex_none().w(20).text_center().text_size(14).text_color(t.dim).child("⊘");
+    return this.badge(t, aiLabel(pr), c.ai[pr.ai]);
   }
 
   list(t, c) {
     const rows = this.rows(), out = [];
     let repo = null;
     rows.forEach((pr, i) => {
+      // リポジトリの見出しは Repo の並びのときだけ（ほかの並びでは同じリポジトリが離れるので、行にリポジトリ名を出す）
+      const grouped = SORTS[this.sort][0] === "repo";
+      // 行と行の間の区切り線（見出しの直後には入れない）
+      if (i > 0 && !(grouped && pr.repo_name !== repo)) out.push(div().h(1).flex_none().mx(10).bg(t.border));
+      if (!grouped) return out.push(this.listRow(t, c, pr, i));
       if (pr.repo_name !== repo) {
         repo = pr.repo_name;
         out.push(h_flex().px(8).pt(10).pb(4).gap(8).items_center().text_size(10.5).text_color(t.dim)
@@ -266,16 +342,21 @@ export default class Reviews extends View {
     return v_flex().px(12).py(8).gap(4).rounded(8).border_1().border_color(t.border).bg(t.surface)
       .when(Boolean(state), (e) => e.opacity(0.5))
       .child(h_flex().gap(8).items_center().text_size(11)
-        .child(this.badge(t, f.severity || "?", c.sev[f.severity]))
-        .when(Boolean(f.item), (e) => e.child(div().flex_none().text_color(t.dim).child(f.item)))
+        .child(this.badge(t, en("severity", f.severity) || "?", c.sev[f.severity]))
+        .when(Boolean(f.item), (e) => e.child(div().flex_none().text_color(t.dim).child(en("item", f.item))))
         .child(div().id(`rn-loc-${i}`).flex_1().min_w(0).truncate().text_color(t.accent)
           .when(Boolean(f.url), (e) => e.cursor_pointer().on_click((_e, cx) => cx.open_url(f.url)))
           .child(f.loc))
         .when(Boolean(state), (e) => e.child(div().flex_none().text_color(t.dim).child(state)))
+        // Drop は GitHub に何も送っていないので、取り消して未処理に戻せる（Accept は投稿済みなので戻さない）
+        .when(state === "dropped", (e) => e.child(this.button(t, `rn-undo-${i}`, "Undo",
+          (cx) => { this.setFindingState(rv, f, null); cx.notify(); })))
         .when(can && !state, (e) => e
-          .child(this.button(t, `rn-acc-${i}`, "Accept", (cx) => this.accept(pr, rv, f, cx), { primary: true }))
+          .child(this.button(t, `rn-acc-${i}`, this.posting && this.busy === pr.url ? "Posting…"
+            : this.confirmPost === `${pr.url} ${findingId(f)}` ? "Really post?" : "Accept",
+          (cx) => this.accept(pr, rv, f, cx), { primary: true, disabled: Boolean(this.busy) }))
           .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); })))
-        .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("worktree なし"))))
+        .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree"))))
       // id は指摘ごとに変える（位置で付けると、指摘が入れ替わったとき前の本文のまま残るおそれがある）
       .child(div().text_size(12).child(TextView.markdown(`rn-f-${pr.repo_name}-${pr.number}-${rv.head}-${f.path}:${f.line}:${hash(f.body)}`,
         shown(f.body || " "))));
@@ -283,22 +364,42 @@ export default class Reviews extends View {
 
   review(t, c, pr) {
     const rv = pr.review;
-    if (!rv) return div().text_size(12).text_color(t.dim).child(pr.ai_label);
+    if (!rv && pr.ai === "skip") return this.skipped(t, pr);
+    if (!rv) return div().text_size(12).text_color(t.dim).child(aiLabel(pr));
     const marks = { ok: ["○", t.ansi2], warn: ["△", t.ansi3], ng: ["×", t.ansi1], na: ["−", t.dim] };
     return v_flex().gap(10)
       .when(Boolean(rv.error), (e) => e.child(div().text_size(12).text_color(t.ansi1).child(rv.error)))
       .when(Boolean(rv.summary), (e) => e.child(div().text_size(12.5).child(rv.summary)))
       .when(!rv.error, (e) => e
         .child(div().pt(4).text_size(11.5).font_semibold().text_color(rv.source === "council" ? t.ansi5 : t.muted)
-          .child(`${rv.source === "council" ? "✦ Council findings" : "指摘"} · ${rv.findings.length}件`))
+          .child(`${rv.source === "council" ? "✦ Council findings" : "Findings"} · ${rv.findings.length}`))
         .children(rv.findings.map((f, i) => this.finding(t, c, pr, rv, f, i)))
-        .when(!rv.findings.length, (e) => e.child(div().text_size(12).text_color(t.dim).child("指摘はありません"))))
+        .when(!rv.findings.length, (e) => e.child(div().text_size(12).text_color(t.dim).child("No findings"))))
       .when(Boolean(rv.checks?.length), (e) => e
-        .child(div().pt(4).text_size(11.5).font_semibold().text_color(t.muted).child("項目別の判定"))
+        .child(div().pt(4).text_size(11.5).font_semibold().text_color(t.muted).child("Checks"))
         .children(rv.checks.map((ck) => h_flex().gap(8).items_start().text_size(12)
           .child(div().w(14).flex_none().text_color(marks[ck.status]?.[1] ?? t.dim).child(marks[ck.status]?.[0] ?? "?"))
-          .child(div().w(130).flex_none().child(ck.item))
+          .child(div().w(130).flex_none().child(en("item", ck.item)))
           .child(div().flex_1().min_w(0).text_color(t.muted).child(ck.note)))));
+  }
+
+  // AI レビューしない PR。理由と、自分で見るときの手がかりを出す
+  skipped(t, pr) {
+    const fact = (label, value) => h_flex().gap(10).text_size(12)
+      .child(div().w(90).flex_none().text_color(t.dim).child(label)).child(div().flex_1().min_w(0).child(value));
+    return v_flex().gap(14).p(16).rounded(10).border_1().border_color(t.border).bg(t.surface)
+      .child(h_flex().gap(12).items_center()
+        .child(div().size(40).flex_none().rounded_full().bg(t.raised).flex().items_center().justify_center()
+          .text_size(22).text_color(t.muted).child("⊘"))
+        .child(v_flex().gap(2).min_w(0)
+          .child(div().text_size(14).font_semibold().child("AI review skipped"))
+          .child(div().text_size(12).text_color(t.muted).child(SKIP_REASONS[pr.skip_reason] ?? "This PR is not AI reviewed."))))
+      .child(v_flex().gap(6).pt(10).border_t(1).border_color(t.border)
+        .child(fact("Changes", h_flex().gap(8).items_center().child(this.stat(t, pr))
+          .child(div().text_color(t.dim).child(`${pr.changed_files} files`))))
+        .child(fact("Risk", RISK_EN[pr.risk] ?? "Not stated"))
+        .child(fact("Requested", `${ago(requested(pr))}${pr.reason ? ` · ${en("reason", pr.reason)}` : ""}`)))
+      .child(div().text_size(11.5).text_color(t.dim).child("Review it yourself: Open in Redline (⏎) or GitHub (o)."));
   }
 
   detail(t, c) {
@@ -307,8 +408,8 @@ export default class Reviews extends View {
     const blocker = this.approveBlocker(pr), rv = pr.review;
     // どのレビューの結果か。ヘッダーの PR の情報の横に出す
     const meta = !rv ? "" : rv.source === "council"
-      ? `✦ Council · head ${rv.head.slice(0, 7)} · ${rv.where === "redline" ? "Redline で実行" : "review-notify で実行"}`
-      : `AIレビュー · head ${rv.head.slice(0, 7)}${rv.stale ? " · 前回の head の結果（再レビュー待ち）" : ""}`;
+      ? `✦ Council · head ${rv.head.slice(0, 7)}`
+      : `AI review · head ${rv.head.slice(0, 7)}${rv.stale ? " · previous head (re-review pending)" : ""}`;
     return v_flex().flex_1().min_w(0).h_full().min_h(0)
       .child(v_flex().px(18).pt(14).pb(10).gap(6).flex_none().border_b(1).border_color(t.border)
         .child(h_flex().gap(8).items_center()
@@ -322,23 +423,26 @@ export default class Reviews extends View {
           .when(Boolean(meta), (e) => e.child(div().flex_1().min_w(0).truncate()
             .text_color(rv.source === "council" ? t.ansi5 : t.muted).child(meta))))
         .child(h_flex().gap(8).pt(4)
-          .child(this.button(t, "rn-redline", this.busy === pr.url ? "Opening…" : "Redline で開く ⏎", (cx) => this.openRedline(pr, cx),
+          .child(this.button(t, "rn-redline", this.busy === pr.url && !this.posting && !this.approving ? "Opening…" : "Open in Redline ⏎", (cx) => this.openRedline(pr, cx),
             { primary: true, disabled: Boolean(this.busy) }))
           .child(this.button(t, "rn-github", "GitHub o", (cx) => cx.open_url(pr.url)))
           .child(this.button(t, "rn-approve", this.approving && this.busy === pr.url ? "Approving…"
-            : this.confirm === pr.url ? "本当に Approve する？" : blocker === "Approve 済み" ? "✓ Approved" : "Approve",
+            : this.confirm === pr.url ? "Really approve?" : blocker === "Approved" ? "✓ Approved" : "Approve",
           (cx) => this.approve(pr, cx), { primary: this.confirm === pr.url, disabled: Boolean(blocker) || Boolean(this.busy) }))
-          .when(Boolean(blocker) && blocker !== "Approve 済み", (e) => e.child(div().flex_1().min_w(0).truncate().text_size(11)
+          .when(Boolean(blocker) && blocker !== "Approved", (e) => e.child(div().flex_1().min_w(0).truncate().text_size(11)
             .text_color(t.dim).child(blocker)))))
       // そのPRへの操作の結果だけを出す（別のPRに移ると、そのPRのものに変わる）
-      .when(this.notes.has(pr.url), (e) => e.child(div().px(18).py(6).text_size(11.5).text_color(t.ansi1).child(this.notes.get(pr.url))))
+      .when(this.notes.has(pr.url), (e) => e.child(div().px(18).py(6).text_size(11.5)
+        .text_color(this.notes.get(pr.url).ok ? t.ansi2 : t.ansi1).child(this.notes.get(pr.url).text)))
       .child(div().id("rn-detail").flex_1().min_h(0).overflow_y_scrollbar().px(18).py(12).child(this.review(t, c, pr)));
   }
 
   render(cx) {
     const t = theme(), c = this.colors(t), prs = this.data.prs;
     if (this.at >= this.rows().length) this.at = Math.max(0, this.rows().length - 1);
-    const at = this.data.at ? new Date(this.data.at) : null;
+    // 更新日時は JST で出す（UTC に 9 時間足して UTC として読む）
+    const at = this.data.at ? new Date(Date.parse(this.data.at) + 9 * 3600 * 1000) : null;
+    const pad = (n) => String(n).padStart(2, "0");
     return v_flex().id("rn-root").track_focus(this.handle).size_full().min_h(0)
       .bg(t.popover).text_size(13).text_color(t.foreground)
       .on_key_down((e, cx) => {
@@ -352,15 +456,16 @@ export default class Reviews extends View {
         else if (k === "tab") {
           const i = RISKS.findIndex(([key]) => key === this.risk);
           this.setRisk(RISKS[(i + (m.shift ? -1 : 1) + RISKS.length) % RISKS.length][0], cx);
-        } else if (k === "r") { this.text = undefined; this.rebuild(cx); }
+        } else if (k === "s") this.cycleSort(cx);
+        else if (k === "r") { this.text = undefined; this.rebuild(cx); }
         else return;
         cx.stop_propagation();
       })
       .child(h_flex().h(44).flex_none().px(16).gap(10).items_center().border_b(1).border_color(t.border).bg(t.chrome)
-        .child(div().text_size(14).font_semibold().child("Reviews"))
+        .child(div().text_size(14).font_semibold().child("Monz Reviews"))
         .child(div().flex_1().truncate().text_size(12).text_color(t.muted)
-          .child(`レビュー依頼 ${prs.length}件${at ? ` · ${at.getMonth() + 1}/${at.getDate()} ${String(at.getHours()).padStart(2, "0")}:${String(at.getMinutes()).padStart(2, "0")} に更新` : ""}`))
-        .child(div().text_size(11).text_color(t.dim).child("j/k ⏎ Redline · o GitHub · tab リスク · r · Esc")))
+          .child(`${prs.length} review request${prs.length === 1 ? "" : "s"}${at ? ` · Updated ${at.getUTCMonth() + 1}/${at.getUTCDate()} ${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} JST` : ""}`))
+        .child(div().text_size(11).text_color(t.dim).child("j/k ⏎ Redline · o GitHub · tab Risk · s Sort · r · Esc")))
       .child(h_flex().flex_none().px(12).py(8).gap(6).border_b(1).border_color(t.border)
         .children(RISKS.map(([key, label]) => {
           const n = key === "all" ? prs.length : prs.filter((p) => riskKey(p) === key).length, on = this.risk === key;
@@ -368,7 +473,11 @@ export default class Reviews extends View {
             .border_color(on ? t.accent : t.border).text_color(on ? t.accent : n ? t.muted : t.dim)
             .when(Boolean(n) || key === "all", (e) => e.cursor_pointer().on_click((_e, cx) => this.setRisk(key, cx)))
             .child(`${label} ${n}`);
-        })))
+        }))
+        .child(div().flex_1())
+        .child(div().id("rn-sort").px(10).py(2).rounded(12).text_size(11.5).border_1().border_color(t.border).text_color(t.muted)
+          .cursor_pointer().hover((s) => s.bg(t.hover)).on_click((_e, cx) => this.cycleSort(cx))
+          .child(`Sort: ${SORTS[this.sort][1]} (s)`)))
       .when(Boolean(this.error), (e) => e.child(div().px(16).py(6).text_size(11.5).text_color(t.ansi1).child(this.error)))
       .child(h_flex().flex_1().min_h(0).items_start().child(this.list(t, c)).child(this.detail(t, c)));
   }
