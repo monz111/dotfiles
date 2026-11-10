@@ -1,0 +1,13 @@
+{
+  "zoom": 1,
+  "sounds": {
+    "enabled": true
+  },
+  "font": "HackGen Console NF",
+  "font_size": 15,
+  "font_ligatures": false,
+  "ui_font": "HackGen Console NF",
+  "minimum_contrast": 1,
+  "window_opacity": 0.8,
+  "window_blur": true
+}
