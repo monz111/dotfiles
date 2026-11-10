@@ -54,12 +54,24 @@ export default class Reviews extends View {
   init(_props, cx) {
     this.handle = cx.focus_handle();
     this.text = undefined; this.data = { prs: [] }; this.at = 0; this.risk = "all";
-    this.error = null; this.note = null; this.busy = null; this.confirm = null; this.approved = new Set();
+    this.error = null; this.notes = new Map(); this.busy = null;  // notes: PR の URL → そのPRへの操作の結果の文
+    this.confirm = null; this.approved = new Set();
     this.handle.focus();
     cx.timer.after(300, () => this.handle.focus());
     this.load(cx);
+    this.rebuild(cx);
     // review-notify.py は 1 分ごとに一覧を、AI レビューが 1 件終わるごとに結果を書き直す
     cx.timer.every(5000, (cx) => this.load(cx));
+  }
+
+  // 前回集めた一覧から board.json を作り直す（GitHub への問い合わせもレビューもしない）。
+  // review-notify.py は平日 9〜17 時しか動かないので、Redline で開いて worktree ができた（Accept・Drop が使える）、
+  // Redline で council を実行した、などを、開いたときにすぐ出すため
+  rebuild(cx) {
+    cx.spawn(async (cx) => {
+      try { await exec("/usr/bin/python3", ["-I", `${DIR}/review-notify.py`, "--board"], { timeout: 60000 }); } catch { /* 前の一覧のまま */ }
+      this.load(cx);
+    });
   }
 
   close() { closeOverlay(props().overlay); }
@@ -100,7 +112,7 @@ export default class Reviews extends View {
   // redline-open.py が Redline の Start review と同じ手順でレビュー画面を開く（もう開いていればそこへ移る）
   openRedline(pr, cx) {
     if (!pr || this.busy) return;
-    this.busy = pr.url; this.note = null; cx.notify();
+    this.busy = pr.url; this.notes.delete(pr.url); cx.notify();
     cx.spawn(async (cx) => {
       let r = null, failed = null;
       // 失敗（時間切れなど）で例外になっても busy を戻す。戻さないとボタンが押せないままになる
@@ -110,7 +122,7 @@ export default class Reviews extends View {
       } catch (e) { failed = String(e?.message ?? e); }
       this.busy = null;
       if (r?.code === 0) return this.close();
-      this.note = failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim();
+      this.notes.set(pr.url, failed ?? (r.stderr || r.stdout || `exit ${r.code}`).trim());
       cx.notify();
     });
   }
@@ -126,7 +138,7 @@ export default class Reviews extends View {
     const draft = { id: `local-${Date.now()}`, local: true, body: f.body, anchor, head: rv.head };
     setShared(draftKey(pr), [...(shared(draftKey(pr)) ?? []), draft]);
     this.setFindingState(rv, f, "accepted");
-    this.note = `#${pr.number} の保留中のコメントに追加しました。GitHub に送るのは Redline の Submit review です。`;
+    this.notes.set(pr.url, `#${pr.number} の保留中のコメントに追加しました。GitHub に送るのは Redline の Submit review です。`);
     cx.notify();
   }
 
@@ -146,7 +158,7 @@ export default class Reviews extends View {
   approve(pr, cx) {
     if (this.approveBlocker(pr) || this.busy) return;
     if (this.confirm !== pr.url) { this.confirm = pr.url; cx.notify(); return; }
-    this.confirm = null; this.busy = pr.url; this.approving = true; this.note = null; cx.notify();
+    this.confirm = null; this.busy = pr.url; this.approving = true; this.notes.delete(pr.url); cx.notify();
     const repo = pr.url.replace(/^https:\/\/github\.com\/|\/pull\/\d+$/g, "");
     cx.spawn(async (cx) => {
       let r = null;
@@ -156,8 +168,8 @@ export default class Reviews extends View {
         if (r.code !== 127) break;
       }
       this.busy = null; this.approving = false;
-      if (r?.code === 0) { this.approved.add(pr.url); this.note = `#${pr.number} を Approve しました。`; }
-      else this.note = `Approve できませんでした: ${(r?.stderr || r?.stdout || "gh が見つかりません").trim()}`;
+      if (r?.code === 0) { this.approved.add(pr.url); this.notes.set(pr.url, `#${pr.number} を Approve しました。`); }
+      else this.notes.set(pr.url, `Approve できませんでした: ${(r?.stderr || r?.stdout || "gh が見つかりません").trim()}`);
       cx.notify();
     });
   }
@@ -247,7 +259,8 @@ export default class Reviews extends View {
   }
 
   finding(t, c, pr, rv, f, i) {
-    // Accept・Drop は council の指摘で、Redline の worktree があるときだけ（Finish review の後は記録先がない）
+    // Accept・Drop は council の指摘だけ。記録先は Redline の worktree（まだなければ、Redline が作る予定の場所。
+    // review-notify.py の redline_folder()）なので、Redline を開かなくても押せ、あとで Redline で開くとそのまま見える
     const council = rv.source === "council", can = council && Boolean(rv.folder);
     const state = can ? findingState(rv, f) : null;
     return v_flex().px(12).py(8).gap(4).rounded(8).border_1().border_color(t.border).bg(t.surface)
@@ -317,7 +330,8 @@ export default class Reviews extends View {
           (cx) => this.approve(pr, cx), { primary: this.confirm === pr.url, disabled: Boolean(blocker) || Boolean(this.busy) }))
           .when(Boolean(blocker) && blocker !== "Approve 済み", (e) => e.child(div().flex_1().min_w(0).truncate().text_size(11)
             .text_color(t.dim).child(blocker)))))
-      .when(Boolean(this.note), (e) => e.child(div().px(18).py(6).text_size(11.5).text_color(t.ansi1).child(this.note)))
+      // そのPRへの操作の結果だけを出す（別のPRに移ると、そのPRのものに変わる）
+      .when(this.notes.has(pr.url), (e) => e.child(div().px(18).py(6).text_size(11.5).text_color(t.ansi1).child(this.notes.get(pr.url))))
       .child(div().id("rn-detail").flex_1().min_h(0).overflow_y_scrollbar().px(18).py(12).child(this.review(t, c, pr)));
   }
 
@@ -338,7 +352,7 @@ export default class Reviews extends View {
         else if (k === "tab") {
           const i = RISKS.findIndex(([key]) => key === this.risk);
           this.setRisk(RISKS[(i + (m.shift ? -1 : 1) + RISKS.length) % RISKS.length][0], cx);
-        } else if (k === "r") { this.text = undefined; this.load(cx); }
+        } else if (k === "r") { this.text = undefined; this.rebuild(cx); }
         else return;
         cx.stop_propagation();
       })
