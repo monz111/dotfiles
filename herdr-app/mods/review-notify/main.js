@@ -1,4 +1,4 @@
-import { View, div, image } from "gpui-kit";
+import { View, div, image, PathBuilder, Background } from "gpui-kit";
 import { v_flex, h_flex, TextView } from "gpui-base";
 import { props, closeOverlay, theme, home, readTextFile, exec, shared, setShared, notify } from "herdr";
 
@@ -36,6 +36,22 @@ const RISKS = [["all", "All"], ["低", "Low"], ["中", "Medium"], ["高", "High"
 const RISK_EN = { 低: "Low", 中: "Medium", 高: "High" };
 const riskKey = (pr) => pr.risk ?? "none";
 // 色を薄く敷く背景（mods/mods-hub/ui.js の tint と同じ）
+// Nerd Font のアイコン（settings.json の ui_font の HackGen Console NF にある。色は text_color で付く）
+// 名前は Nerd Font の nf-fa-*・nf-oct-*。ボタンは文字だけでも分かるよう、アイコンはラベルの前に添えるだけにする
+// ask は nf-md-robot_outline（Claude に聞くので AI のロボット）。council（nf-fa-users）は幅が 1 文字を超えて文字に食い込むので、後ろに空白を足す
+const NF = { hourglass: "\uf252", comment: "\uf075", github: "\uf09b", check: "\uf00c", send: "\uf1d8", drop: "\uf00d",
+  undo: "\uf0e2", ask: "\u{f167a}", diff: "\uf4d2", council: "\uf0c0 ", branch: "\uf418", file: "\uf016", sort: "\uf0dc" };
+// 重い指摘（council の blocker・major、AI レビューの重大）。カードの右下に赤いグラデーションを敷く
+const SEVERE = new Set(["blocker", "major", "重大"]);
+// 親いっぱいの四角にグラデーションを塗る層（mods/win98 の kit.js の gradient() と同じ作り）。angle は 90 で左→右、180 で上→下
+const RECT = () => PathBuilder.fill().move_to("0%", "0%").line_to("100%", "0%").line_to("100%", "100%").line_to("0%", "100%").close().build();
+const layer = (angle, from, to) => window.paint_path(RECT(), Background.linear_gradient(angle, from, to)).absolute().top(0).left(0).size_full();
+// 右下へ向かう斜めのグラデーションで、途中（GLOW_FROM）までは透明にして、赤を右下の角だけに出す（color は #rrggbb）。
+// stop の位置は 0〜1（GPUI の linear_color_stop と同じ）。地の色で覆う作りにしないのは、テーマの surface が #rrggbb とは限らないため
+const GLOW_FROM = 0.6;
+const glow = (color) => layer(135, Background.stop(color + "00", GLOW_FROM), Background.stop(color + "40", 1));
+// 指摘のカードの地に敷く、ごく薄い斜線（線の太さ 1・間隔 7）
+const stripes = (color) => window.paint_path(RECT(), Background.pattern_slash(color, 1, 7)).absolute().top(0).left(0).size_full();
 const tint = (color, alpha = "24") => (/^#[0-9a-f]{6}$/i.test(color || "") ? color + alpha : color);
 // 一覧の並び順。s キーかボタンで切り替える。先頭が既定（リポジトリごと・その中でリスクが低い順・レビュー依頼が古い順）
 const RISK_RANK = { 低: 0, 中: 1, 高: 2 };  // 記載なしは最後
@@ -300,11 +316,14 @@ export default class Reviews extends View {
       .text_color(color ?? t.muted).child(text);
   }
 
-  button(t, id, label, onClick, { primary = false, disabled = false } = {}) {
-    return div().id(id).flex_none().h(28).px(12).flex().items_center().rounded(6).text_size(12)
-      .when(primary, (e) => e.bg(disabled ? t.raised : t.solid).text_color(disabled ? t.dim : t.solid_foreground))
-      .when(!primary, (e) => e.border_1().border_color(t.border).text_color(disabled ? t.dim : t.foreground))
+  // color（テーマの ansi の色）を付けると、その色の枠と文字に薄い背景を敷く。primary なら、その色で塗る（「Really …?」など）
+  button(t, id, label, onClick, { primary = false, disabled = false, icon = null, color = null } = {}) {
+    return div().id(id).flex_none().h(28).px(12).flex().items_center().gap(6).rounded(6).text_size(12)
+      .when(primary, (e) => e.bg(disabled ? t.raised : color ?? t.solid).text_color(disabled ? t.dim : color ? t.popover : t.solid_foreground))
+      .when(!primary && Boolean(color) && !disabled, (e) => e.border_1().border_color(color).bg(tint(color)).text_color(color))
+      .when(!primary && !(color && !disabled), (e) => e.border_1().border_color(t.border).text_color(disabled ? t.dim : t.foreground))
       .when(!disabled, (e) => e.cursor_pointer().hover((s) => s.opacity(0.85)).on_click((_e, cx) => onClick(cx)))
+      .when(Boolean(icon), (e) => e.child(icon))
       .child(label);
   }
 
@@ -344,19 +363,25 @@ export default class Reviews extends View {
           .child(div().flex_none().text_size(11.5).text_color(t.accent).child(`#${pr.number}`))
           .child(div().flex_1().min_w(0).truncate().text_size(12.5).text_color(t.foreground).child(pr.title)))
         .child(h_flex().gap(8).items_center().min_w(0).text_size(11).text_color(t.dim)
-          .when(Boolean(pr.risk), (e) => e.child(this.riskPill(t, c, pr.risk)))
-          .when(this.handled(pr).posted > 0, (e) => e.child(div().flex_none().text_color(t.ansi4).child(`💬 ${this.handled(pr).posted} posted`)))
+          .when(Boolean(pr.risk), (e) => e.child(this.riskDot(t, c, pr.risk)))
+          .when(this.handled(pr).posted > 0, (e) => e.child(h_flex().flex_none().gap(6).items_center().text_color(t.ansi4)
+            .child(NF.comment).child(`${this.handled(pr).posted} posted`)))
           .child(div().flex_none().child(pr.author))
           .child(div().flex_1().min_w(0).truncate()
             .child(`${SORTS[this.sort][0] === "repo" ? "" : `${pr.repo_name} · `}${ago(requested(pr))}${pr.reason ? ` · ${en("reason", pr.reason)}` : ""}`))))
       .child(this.aiBadge(t, c, pr));
   }
 
-  // リスクの色を薄く敷いた札
+  // リスクの色を薄く敷いた札（右の詳細）。英語の名前で出す
   riskPill(t, c, risk) {
     const color = c.risk[risk] ?? t.dim;
     return div().flex_none().px(8).py(1).rounded_full().bg(tint(color, "33")).text_color(color)
       .text_size(10.5).font_semibold().child(RISK_EN[risk] ?? "No risk");
+  }
+
+  // 一覧の行のリスク。場所を取らないよう、リスクの色の丸だけにする
+  riskDot(t, c, risk) {
+    return div().flex_none().size(8).rounded_full().bg(c.risk[risk] ?? t.dim);
   }
 
   // 指摘のうち Post・Drop した件数（記録は Redline の worktree ごとなので、council で worktree があるときだけ）
@@ -370,12 +395,13 @@ export default class Reviews extends View {
     return n;
   }
 
-  // 指摘があれば未処理の件数だけ。片付いたら、Post したものがあれば作者の対応待ち（Waiting）、なければ ✓。
+  // 指摘があれば未処理の件数だけ。片付いたら、Post したものがあれば作者の対応待ち（砂時計）、なければ ✓。
   // AI 対象外は ⊘ だけ、それ以外は AI の状態のラベル
   aiBadge(t, c, pr) {
     if ((pr.ai === "ng" || pr.ai === "warn") && pr.count) {
       const color = c.ai[pr.ai], h = this.handled(pr), left = pr.count - h.posted - h.dropped;
-      if (left <= 0) return h.posted ? this.badge(t, "Waiting", t.ansi4)
+      // 作者の対応待ちは砂時計（行に「n posted」が出るので、文字のラベルは出さない）
+      if (left <= 0) return h.posted ? div().flex_none().w(20).text_center().text_size(13).text_color(t.ansi4).child(NF.hourglass)
         : div().flex_none().w(20).text_center().text_size(13).font_bold().text_color(c.ai.ok).child("✓");
       return div().flex_none().min_w(20).h(18).px(6).rounded_full().bg(color).text_color(t.popover)
         .flex().items_center().justify_center().text_size(10.5).font_bold().child(String(left));
@@ -412,7 +438,14 @@ export default class Reviews extends View {
     // review-notify.py の redline_folder()）なので、Redline を開かなくても押せ、あとで Redline で開くとそのまま見える
     const council = rv.source === "council", can = council && Boolean(rv.folder);
     const state = can ? findingState(rv, f) : null;
-    return v_flex().px(12).py(8).gap(4).rounded(8).border_1().border_color(i === this.f ? t.accent : t.border).bg(t.surface)
+    // 色が #rrggbb でないテーマでは、透明度を足せないのでグラデーションを出さない
+    const hex = (x) => /^#[0-9a-f]{6}$/i.test(x || ""), severe = SEVERE.has(f.severity) && hex(t.ansi1);
+    // 斜線は重い指摘なら赤、それ以外は文字の色。#rrggbb でなく透明度を足せないときは枠の色で引く
+    const stripe = severe ? t.ansi1 + "14" : hex(t.foreground) ? t.foreground + "0d" : t.border;
+    return v_flex().relative().overflow_hidden().px(12).py(8).gap(4).rounded(8).border_1()
+      .border_color(i === this.f ? t.accent : severe ? tint(t.ansi1, "66") : t.border).bg(t.surface)
+      .child(stripes(stripe))
+      .when(severe, (e) => e.child(glow(t.ansi1)))
       .when(Boolean(state), (e) => e.opacity(0.5))
       .child(h_flex().gap(8).items_center().text_size(11)
         .child(this.badge(t, en("severity", f.severity) || "?", c.sev[f.severity]))
@@ -423,15 +456,16 @@ export default class Reviews extends View {
         .when(Boolean(state), (e) => e.child(div().flex_none().text_color(t.dim).child(state)))
         // Drop は GitHub に何も送っていないので、取り消して未処理に戻せる（Post は投稿済みなので戻さない）
         .when(state === "dropped", (e) => e.child(this.button(t, `rn-undo-${i}`, "Undo",
-          (cx) => { this.setFindingState(rv, f, null); cx.notify(); })))
+          (cx) => { this.setFindingState(rv, f, null); cx.notify(); }, { icon: NF.undo })))
         .when(can && !state, (e) => e
           .child(this.button(t, `rn-acc-${i}`, this.posting && this.busy === pr.url ? "Posting…"
             : this.confirmPost === `${pr.url} ${findingId(f)}` ? "Really post?" : "Post",
-          (cx) => this.accept(pr, rv, f, cx), { primary: true, disabled: Boolean(this.busy) }))
-          .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); })))
+          (cx) => this.accept(pr, rv, f, cx), { primary: this.confirmPost === `${pr.url} ${findingId(f)}`, disabled: Boolean(this.busy),
+            icon: NF.send, color: t.ansi2 }))
+          .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); }, { icon: NF.drop, color: t.ansi1 })))
         .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
         .child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
-          { disabled: Boolean(this.busy) })))
+          { disabled: Boolean(this.busy), icon: NF.ask, color: t.ansi5 })))
       // id は指摘ごとに変える（位置で付けると、指摘が入れ替わったとき前の本文のまま残るおそれがある）
       .child(div().text_size(12).child(TextView.markdown(`rn-f-${pr.repo_name}-${pr.number}-${rv.head}-${f.path}:${f.line}:${hash(f.body)}`,
         shown(f.body || " "))));
@@ -491,23 +525,26 @@ export default class Reviews extends View {
         .child(h_flex().gap(8).items_center()
           .child(this.repoTile(pr.repo_name, 22))
           .child(div().flex_none().text_size(13).text_color(t.accent).child(`#${pr.number}`))
-          .child(div().flex_1().min_w(0).truncate().text_size(14).font_semibold().child(pr.title)))
+          .child(div().flex_1().min_w(0).truncate().text_size(14).font_semibold().child(pr.title))
+          // リスクはタイトルの右端に、一覧の行と同じ札で出す
+          .child(this.riskPill(t, c, pr.risk)))
         .child(h_flex().gap(10).items_center().text_size(11.5)
-          .child(div().flex_none().text_color(t.dim).child(`${pr.repo_name} · ${pr.branch} · ${pr.changed_files} files`))
+          .child(h_flex().flex_none().gap(6).items_center().text_color(t.dim)
+            .child(pr.repo_name).child(div().ml(4).child(NF.branch)).child(pr.branch).child(div().ml(4).child(NF.file)).child(`${pr.changed_files} files`))
           .child(this.stat(t, pr))
           .child(h_flex().gap(6).items_center().flex_none().child(this.avatar(t, pr, 18)).child(div().text_color(t.dim).child(pr.author)))
           .when(Boolean(meta), (e) => e.child(div().flex_1().min_w(0).truncate()
             .text_color(rv.source === "council" ? t.ansi5 : t.muted).child(meta))))
         .child(h_flex().gap(8).pt(4)
           .child(this.button(t, "rn-redline", this.busy === pr.url && !this.posting && !this.approving && !this.starting ? "Opening…" : "Open in Redline ⏎", (cx) => this.openRedline(pr, cx),
-            { primary: true, disabled: Boolean(this.busy) }))
-          .child(this.button(t, "rn-github", "GitHub o", (cx) => cx.open_url(pr.url)))
+            { primary: true, disabled: Boolean(this.busy), icon: NF.diff }))
+          .child(this.button(t, "rn-github", "GitHub o", (cx) => cx.open_url(pr.url), { icon: NF.github }))
           .when(pr.risk === "中" || pr.risk === "高", (e) => e.child(this.button(t, "rn-council", pr.council_requested ? "Council running…"
             : this.starting && this.busy === pr.url ? "Starting…" : this.confirmCouncil === pr.url ? "Really run council?" : "Run council",
-          (cx) => this.runCouncil(pr, cx), { primary: this.confirmCouncil === pr.url, disabled: Boolean(this.busy) || pr.council_requested })))
+          (cx) => this.runCouncil(pr, cx), { primary: this.confirmCouncil === pr.url, disabled: Boolean(this.busy) || pr.council_requested, icon: NF.council })))
           .child(this.button(t, "rn-approve", this.approving && this.busy === pr.url ? "Approving…"
-            : this.confirm === pr.url ? "Really approve?" : blocker === "Approved" ? "✓ Approved" : "Approve",
-          (cx) => this.approve(pr, cx), { primary: this.confirm === pr.url, disabled: Boolean(blocker) || Boolean(this.busy) }))
+            : this.confirm === pr.url ? "Really approve?" : blocker === "Approved" ? "Approved" : "Approve",
+          (cx) => this.approve(pr, cx), { primary: this.confirm === pr.url, disabled: Boolean(blocker) || Boolean(this.busy), icon: NF.check }))
           .when(Boolean(blocker) && blocker !== "Approved", (e) => e.child(div().flex_1().min_w(0).truncate().text_size(11)
             .text_color(t.dim).child(blocker)))))
       // そのPRへの操作の結果だけを出す（別のPRに移ると、そのPRのものに変わる）
@@ -572,7 +609,7 @@ export default class Reviews extends View {
         .child(div().flex_1())
         .child(div().id("rn-sort").px(10).py(2).rounded(12).text_size(11.5).border_1().border_color(t.border).text_color(t.muted)
           .cursor_pointer().hover((s) => s.bg(t.hover)).on_click((_e, cx) => this.cycleSort(cx))
-          .child(`Sort: ${SORTS[this.sort][1]} (s)`)))
+          .child(h_flex().gap(6).items_center().child(NF.sort).child(`Sort: ${SORTS[this.sort][1]} (s)`))))
       .when(Boolean(this.error), (e) => e.child(div().px(16).py(6).text_size(11.5).text_color(t.ansi1).child(this.error)))
       .child(h_flex().flex_1().min_h(0).items_start().child(this.list(t, c)).child(this.detail(t, c)));
   }
