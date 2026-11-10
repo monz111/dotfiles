@@ -488,13 +488,13 @@ export default class Reviews extends View {
         .when(Boolean(state), (e) => e.child(div().flex_none().text_color(t.dim).child(state)))
         // Drop は GitHub に何も送っていないので、取り消して未処理に戻せる（Post は投稿済みなので戻さない）
         .when(state === "dropped", (e) => e.child(this.button(t, `rn-undo-${i}`, "Undo",
-          (cx) => { this.setFindingState(rv, f, null); cx.notify(); }, { icon: NF.undo })))
+          (cx) => { this.setFindingState(rv, f, null); cx.notify(); }, { disabled: Boolean(this.busy), icon: NF.undo })))
         .when(can && !state, (e) => e
           .child(this.button(t, `rn-acc-${i}`, this.posting && this.busy === pr.url ? "Posting…"
             : this.confirmPost === `${pr.url} ${findingId(f)}` ? "Really post?" : "Post",
           (cx) => this.accept(pr, rv, f, cx), { primary: this.confirmPost === `${pr.url} ${findingId(f)}`, disabled: Boolean(this.busy),
             icon: NF.send, color: t.ansi2 }))
-          .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); }, { icon: NF.drop, color: t.ansi1 })))
+          .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); }, { disabled: Boolean(this.busy), icon: NF.drop, color: t.ansi1 })))
         .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
         .child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
           { disabled: Boolean(this.busy), icon: NF.ask, color: t.ansi5 })))
@@ -615,8 +615,8 @@ export default class Reviews extends View {
         else if (k === "p" || k === "d" || k === "u") {
           const s = this.picked();
           if (k === "p" && s && !s.state) this.accept(s.pr, s.rv, s.f, cx);
-          else if (k === "d" && s && !s.state) { this.setFindingState(s.rv, s.f, "dropped"); this.nextOpen(s.rv); cx.notify(); }
-          else if (k === "u" && s?.state === "dropped") { this.setFindingState(s.rv, s.f, null); cx.notify(); }
+          else if (k === "d" && s && !s.state && !this.busy) { this.setFindingState(s.rv, s.f, "dropped"); this.nextOpen(s.rv); cx.notify(); }
+          else if (k === "u" && s?.state === "dropped" && !this.busy) { this.setFindingState(s.rv, s.f, null); cx.notify(); }
         } else if (k === "a") {
           const pr = this.current(), f = pr?.review?.findings?.[this.f];
           if (f) this.openRedline(pr, cx, askPrompt(pr, f));
