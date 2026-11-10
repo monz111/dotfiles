@@ -183,5 +183,8 @@
   "traffic_lights": [
     12,
     16
-  ]
+  ],
+  "colors": {
+    "selected": "#3d7eff66"
+  }
 }
