@@ -1,10 +1,10 @@
-import = [
+general.import = [
   "~/.config/alacritty/theme/catppuccin-mocha.toml",
 ]
 
 [window]
 opacity = 0.8
-blur = true
+blur = false
 decorations= "buttonless"
 padding = {y = 0}
 
@@ -19,9 +19,9 @@ text = "#000000"
 size = 18
 
 [font.normal]
-family = "JetBrainsMono Nerd Font"
+family = "HackGen Console NF"
 style = "Regular"
 
 [font.bold]
-family = "JetBrainsMono Nerd Font"
+family = "HackGen Console NF"
 style = "Bold"
