@@ -76,6 +76,11 @@ const findingsKey = (rv) => `redline.findings.${rv.folder}`;
 const draftKey = (pr) => `redline.drafts.${pr.url.replace(/^https:\/\/|\/pull\/\d+$/g, "")}#${pr.number}`;
 const findingState = (rv, f) => (shared(findingsKey(rv)) ?? {})[findingId(f)] ?? null;
 const shown = (body) => body.split("\n").filter((l) => !l.startsWith("🤖 Reviewed by")).join("\n");
+// Ask で Claude に渡す最初のメッセージ。続けて自分で質問する前提なので、指摘の確認までで止めてもらう
+const askPrompt = (pr, f) => `PR ${pr.url}（${pr.title}）の AI レビューの指摘について質問します。`
+  + `このフォルダは PR のブランチの worktree です。\n\n指摘（${f.loc}・${f.severity ?? ""}${f.item ? `・${f.item}` : ""}）:\n`
+  + `${shown(f.body || "")}\n\nまず該当箇所のコードと PR の差分（gh pr diff ${pr.url}）を読み、指摘が妥当かを短く説明してください。`
+  + `コードは変更せず、そのあと私の質問を待ってください。`;
 
 function ago(iso) {
   const s = (Date.now() - Date.parse(iso)) / 1000;
@@ -97,7 +102,7 @@ export default class Reviews extends View {
     cx.timer.every(5000, (cx) => this.load(cx));
   }
 
-  // 前回集めた一覧から board.json を作り直す（GitHub への問い合わせもレビューもしない）。
+  // 前回集めた一覧から board.json を作り直す（マージ・クローズされた PR は除く。新しい PR の追加・レビューはしない）。
   // review-notify.py は平日 9〜17 時しか動かないので、Redline で開いて worktree ができた（Post・Drop が使える）、
   // Redline で council を実行した、などを、開いたときにすぐ出すため
   rebuild(cx) {
@@ -175,15 +180,16 @@ export default class Reviews extends View {
 
   setRisk(key, cx) { this.risk = key; this.at = 0; this.f = 0; this.disarm(); cx.notify(); }
 
-  // redline-open.py が Redline の Start review と同じ手順でレビュー画面を開く（もう開いていればそこへ移る）
-  openRedline(pr, cx) {
+  // redline-open.py が Redline の Start review と同じ手順でレビュー画面を開く（もう開いていればそこへ移る）。
+  // prompt を渡すと、そのレビューのタブの Claude に送る（Ask。タブがなければ開いて最初のメッセージにする）
+  openRedline(pr, cx, prompt) {
     if (!pr || this.busy) return;
     this.busy = pr.url; this.notes.delete(pr.url); cx.notify();
     cx.spawn(async (cx) => {
       let r = null, failed = null;
       // 失敗（時間切れなど）で例外になっても busy を戻す。戻さないとボタンが押せないままになる
       try {
-        r = await exec("/usr/bin/python3", ["-I", `${DIR}/redline-open.py`, `redline://review?url=${encodeURIComponent(pr.url)}`],
+        r = await exec("/usr/bin/python3", ["-I", `${DIR}/redline-open.py`, `redline://review?url=${encodeURIComponent(pr.url)}`, ...(prompt ? [prompt] : [])],
           { timeout: 120000 });
       } catch (e) { failed = String(e?.message ?? e); }
       this.busy = null;
@@ -423,7 +429,9 @@ export default class Reviews extends View {
             : this.confirmPost === `${pr.url} ${findingId(f)}` ? "Really post?" : "Post",
           (cx) => this.accept(pr, rv, f, cx), { primary: true, disabled: Boolean(this.busy) }))
           .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); })))
-        .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree"))))
+        .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
+        .child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
+          { disabled: Boolean(this.busy) })))
       // id は指摘ごとに変える（位置で付けると、指摘が入れ替わったとき前の本文のまま残るおそれがある）
       .child(div().text_size(12).child(TextView.markdown(`rn-f-${pr.repo_name}-${pr.number}-${rv.head}-${f.path}:${f.line}:${hash(f.body)}`,
         shown(f.body || " "))));
@@ -535,6 +543,9 @@ export default class Reviews extends View {
           if (k === "p" && s && !s.state) this.accept(s.pr, s.rv, s.f, cx);
           else if (k === "d" && s && !s.state) { this.setFindingState(s.rv, s.f, "dropped"); this.nextOpen(s.rv); cx.notify(); }
           else if (k === "u" && s?.state === "dropped") { this.setFindingState(s.rv, s.f, null); cx.notify(); }
+        } else if (k === "a") {
+          const pr = this.current(), f = pr?.review?.findings?.[this.f];
+          if (f) this.openRedline(pr, cx, askPrompt(pr, f));
         } else if (k === "enter") this.openRedline(this.current(), cx);
         else if (k === "o" && this.current()) cx.open_url(this.current().url);
         else if (k === "tab") {
@@ -549,7 +560,7 @@ export default class Reviews extends View {
         .child(div().text_size(14).font_semibold().child("Monz Reviews"))
         .child(div().flex_1().truncate().text_size(12).text_color(t.muted)
           .child(`${prs.length} review request${prs.length === 1 ? "" : "s"}${at ? ` · Updated ${at.getUTCMonth() + 1}/${at.getUTCDate()} ${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} JST` : ""}`))
-        .child(div().text_size(11).text_color(t.dim).child("J/K PR · j/k Finding · p Post · d Drop · u Undo · ⏎ Redline · o GitHub · tab Risk · s Sort · r · Esc")))
+        .child(div().text_size(11).text_color(t.dim).child("J/K PR · j/k Finding · p Post · d Drop · u Undo · a Ask · ⏎ Redline · o GitHub · tab Risk · s Sort · r · Esc")))
       .child(h_flex().flex_none().px(12).py(8).gap(6).border_b(1).border_color(t.border)
         .children(RISKS.map(([key, label]) => {
           const n = key === "all" ? prs.length : prs.filter((p) => riskKey(p) === key).length, on = this.risk === key;
