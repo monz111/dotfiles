@@ -605,7 +605,8 @@ export default class Reviews extends View {
     const at = this.data.at ? new Date(Date.parse(this.data.at) + 9 * 3600 * 1000) : null;
     const pad = (n) => String(n).padStart(2, "0");
     return v_flex().id("rn-root").track_focus(this.handle).size_full().min_h(0)
-      .bg(t.popover).text_size(13).text_color(t.foreground)
+      // 地は 95% の不透明度（mod.json の frame: "none" で Herdr の枠を外し、角・枠線・影を自前で描く）。ヘッダーに地の色を重ねないのは、そこだけ濃くなるため
+      .rounded(14).overflow_hidden().bg(tint(t.popover, "f2")).border_1().border_color(tint(t.foreground, "1a")).shadow_2xl().text_size(13).text_color(t.foreground)
       .on_key_down((e, cx) => {
         const k = e.key, m = e.modifiers;
         if (k === "escape") return this.close();
@@ -635,7 +636,7 @@ export default class Reviews extends View {
         else return;
         cx.stop_propagation();
       })
-      .child(h_flex().h(44).flex_none().px(16).gap(10).items_center().border_b(1).border_color(t.border).bg(t.chrome)
+      .child(h_flex().h(44).flex_none().px(16).gap(10).items_center().border_b(1).border_color(t.border)
         .child(div().text_size(14).font_semibold().child("Monz Reviews"))
         .child(div().flex_1().truncate().text_size(12).text_color(t.muted)
           .child(`${prs.length} review request${prs.length === 1 ? "" : "s"}${at ? ` · Updated ${at.getUTCMonth() + 1}/${at.getUTCDate()} ${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} JST` : ""}`))
