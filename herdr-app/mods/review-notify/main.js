@@ -412,6 +412,8 @@ export default class Reviews extends View {
   // 指摘があれば未処理の件数だけ。片付いたら、Post したものがあれば作者の対応待ち（砂時計）、なければ ✓。
   // AI 対象外は ⊘ だけ、それ以外は AI の状態のラベル
   aiBadge(t, c, pr) {
+    // 自分がレビュー済みで作者の対応待ち（Waiting for author）は、AI の結果にかかわらず砂時計
+    if (pr.reason === "対応待ち") return div().flex_none().w(20).text_center().text_size(13).text_color(t.ansi4).child(NF.hourglass);
     if ((pr.ai === "ng" || pr.ai === "warn") && pr.count) {
       const color = c.ai[pr.ai], h = this.handled(pr), left = pr.count - h.posted - h.dropped;
       // 作者の対応待ちは砂時計（行に「n posted」が出るので、文字のラベルは出さない）
@@ -496,8 +498,8 @@ export default class Reviews extends View {
             icon: NF.send, color: t.ansi2 }))
           .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); }, { disabled: Boolean(this.busy), icon: NF.drop, color: t.ansi1 })))
         .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
-        .child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
-          { disabled: Boolean(this.busy), icon: NF.ask, color: t.ansi5 })))
+        .when(state !== "dropped", (e) => e.child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
+          { disabled: Boolean(this.busy), icon: NF.ask, color: t.ansi5 }))))
       // Drop した指摘は本文を畳み、タイトル（本文の最初の行。「### 」は外す）の 1 行だけにする
       .when(state === "dropped", (e) => e.child(div().min_w(0).truncate().text_size(12).font_semibold()
         .child((f.body || "").split("\n").find((l) => l.trim())?.replace(/^#+\s*/, "") ?? "")))
@@ -619,7 +621,7 @@ export default class Reviews extends View {
           else if (k === "u" && s?.state === "dropped" && !this.busy) { this.setFindingState(s.rv, s.f, null); cx.notify(); }
         } else if (k === "a") {
           const pr = this.current(), f = pr?.review?.findings?.[this.f];
-          if (f) this.openRedline(pr, cx, askPrompt(pr, f));
+          if (f && findingState(pr.review, f) !== "dropped") this.openRedline(pr, cx, askPrompt(pr, f));
         } else if (k === "enter") this.openRedline(this.current(), cx);
         else if (k === "o" && this.current()) cx.open_url(this.current().url);
         else if (k === "tab") {
