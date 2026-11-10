@@ -25,6 +25,7 @@ startup_command = "nvim"
 
 [[session]]
 name = "👔 refreshers"
+path = "~/Projects/refreshers/"
 startup_command = "~/.config/sesh/sessions/refreshers.sh"
 
 [[session]]
