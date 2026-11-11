@@ -193,7 +193,7 @@ export default class Reviews extends View {
   // 選んだ指摘と、その処理状態。Post・Drop・Undo のボタンを出す条件（council で worktree あり）と同じときだけ返す
   picked() {
     const pr = this.current(), rv = pr?.review, f = rv?.findings?.[this.f];
-    if (!f || rv.source !== "council" || !rv.folder) return null;
+    if (!f || !rv.folder || !f.line) return null;
     return { pr, rv, f, state: findingState(rv, f) };
   }
 
@@ -271,8 +271,8 @@ export default class Reviews extends View {
     if (this.approved.has(pr.url)) return "Approved";
     if (!rv || rv.error || rv.stale) return "No review for the current head";
     if ((shared(draftKey(pr)) ?? []).length) return "Pending comments (send with Submit review in Redline)";
-    const left = rv.findings.filter((f) => !(rv.source === "council" && rv.folder && findingState(rv, f) === "dropped"));
-    if (left.length && rv.source === "council" && !rv.folder) return `${left.length} findings (open in Redline to drop)`;
+    const left = rv.findings.filter((f) => !(rv.folder && findingState(rv, f) === "dropped"));
+    if (left.length && !rv.folder) return `${left.length} findings (open in Redline to drop)`;
     return left.length ? `${left.length} findings not dropped` : null;
   }
 
@@ -401,7 +401,7 @@ export default class Reviews extends View {
   // 指摘のうち Post・Drop した件数（記録は Redline の worktree ごとなので、council で worktree があるときだけ）
   handled(pr) {
     const rv = pr.review, n = { posted: 0, dropped: 0 };
-    if (rv?.source !== "council" || !rv.folder) return n;
+    if (!rv?.folder) return n;
     for (const f of rv.findings) {
       const s = findingState(rv, f);
       if (s === "accepted") n.posted++; else if (s === "dropped") n.dropped++;
@@ -470,7 +470,7 @@ export default class Reviews extends View {
   finding(t, c, pr, rv, f, i) {
     // Post・Drop は council の指摘だけ。記録先は Redline の worktree（まだなければ、Redline が作る予定の場所。
     // review-notify.py の redline_folder()）なので、Redline を開かなくても押せ、あとで Redline で開くとそのまま見える
-    const council = rv.source === "council", can = council && Boolean(rv.folder);
+    const can = Boolean(rv.folder && f.line);
     const state = can ? findingState(rv, f) : null;
     // 色が #rrggbb でないテーマでは、透明度を足せないのでグラデーションを出さない
     const hex = (x) => /^#[0-9a-f]{6}$/i.test(x || ""), severe = SEVERE.has(f.severity) && hex(t.ansi1);
@@ -497,7 +497,7 @@ export default class Reviews extends View {
           (cx) => this.accept(pr, rv, f, cx), { primary: this.confirmPost === `${pr.url} ${findingId(f)}`, disabled: Boolean(this.busy),
             icon: NF.send, color: t.ansi2 }))
           .child(this.button(t, `rn-drop-${i}`, "Drop", (cx) => { this.setFindingState(rv, f, "dropped"); cx.notify(); }, { disabled: Boolean(this.busy), icon: NF.drop, color: t.ansi1 })))
-        .when(council && !rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
+        .when(!rv.folder, (e) => e.child(div().flex_none().text_color(t.dim).child("No worktree")))
         .when(state !== "dropped", (e) => e.child(this.button(t, `rn-ask-${i}`, "Ask", (cx) => { this.f = i; this.openRedline(pr, cx, askPrompt(pr, f)); },
           { disabled: Boolean(this.busy), icon: NF.ask, color: t.ansi5 }))))
       // Drop した指摘は本文を畳み、タイトル（本文の最初の行。「### 」は外す）の 1 行だけにする
@@ -620,9 +620,10 @@ export default class Reviews extends View {
           if (k === "p" && s && !s.state) this.accept(s.pr, s.rv, s.f, cx);
           else if (k === "d" && s && !s.state && !this.busy) { this.setFindingState(s.rv, s.f, "dropped"); this.nextOpen(s.rv); cx.notify(); }
           else if (k === "u" && s?.state === "dropped" && !this.busy) { this.setFindingState(s.rv, s.f, null); cx.notify(); }
-        } else if (k === "a") {
+        } else if (lk === "a") {
           const pr = this.current(), f = pr?.review?.findings?.[this.f];
-          if (f && findingState(pr.review, f) !== "dropped") this.openRedline(pr, cx, askPrompt(pr, f));
+          if (m.shift) { if (pr) this.approve(pr, cx); } // shift-a は Approve（2 回押して送る）
+          else if (f && findingState(pr.review, f) !== "dropped") this.openRedline(pr, cx, askPrompt(pr, f));
         } else if (k === "enter") this.openRedline(this.current(), cx);
         else if (k === "o" && this.current()) cx.open_url(this.current().url);
         else if (k === "tab") {
@@ -640,7 +641,7 @@ export default class Reviews extends View {
         .child(div().text_size(14).font_semibold().child("Monz Reviews"))
         .child(div().flex_1().truncate().text_size(12).text_color(t.muted)
           .child(`${prs.length} review request${prs.length === 1 ? "" : "s"}${at ? ` · Updated ${at.getUTCMonth() + 1}/${at.getUTCDate()} ${pad(at.getUTCHours())}:${pad(at.getUTCMinutes())} JST` : ""}`))
-        .child(div().text_size(11).text_color(t.dim).child("J/K PR · j/k Finding · p Post · d Drop · u Undo · a Ask · ⏎ Redline · o GitHub · tab Risk · s Sort · r · Esc")))
+        .child(div().text_size(11).text_color(t.dim).child("J/K PR · j/k Finding · p Post · d Drop · u Undo · a Ask · A Approve · ⏎ Redline · o GitHub · tab Risk · s Sort · r · Esc")))
       .when(Boolean(this.error), (e) => e.child(div().px(16).py(6).text_size(11.5).text_color(t.ansi1).child(this.error)))
       .child(h_flex().flex_1().min_h(0).items_start().child(this.list(t, c)).child(this.detail(t, c)));
   }
