@@ -23,6 +23,7 @@
     "cmd-shift-f": "mod.open:redline",
     "ctrl-shift-f": "mod.open:redline",
     "cmd-r": "mod.open:review-notify",
+    "cmd-e": "mod.open:wtr-desk",
     "cmd-,": "app.settings",
     "cmd-d": "pane.split:right",
     "cmd-shift-d": "pane.split:down",
