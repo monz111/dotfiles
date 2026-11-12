@@ -101,5 +101,11 @@ export PATH="/opt/homebrew/bin:$PATH"
 source /Users/monz/.safe-chain/scripts/init-posix.sh # Safe-chain Zsh initialization script
 
 
+# claude起動時、ディレクトリ(gitならルート)ごとにタスクリストを固定して、セッションを跨いで維持する
+claude() {
+  local root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  CLAUDE_CODE_TASK_LIST_ID="$(basename "$root")-$(printf %s "$root" | shasum | cut -c1-6)" command claude "$@"
+}
+
 # zoxide は shell 設定の最後で初期化する（_ZO_DOCTOR 警告回避）
 eval "$(zoxide init --cmd cd zsh)"
