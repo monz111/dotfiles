@@ -50,6 +50,16 @@
           ]
         },
         {
+          "id": "ime-ascii",
+          "type": "block",
+          "content": {
+            "mod": "ime-ascii"
+          },
+          "size": {
+            "px": 0
+          }
+        },
+        {
           "id": "sidebar-footer",
           "type": "block",
           "content": {
