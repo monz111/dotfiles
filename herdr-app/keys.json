@@ -25,6 +25,7 @@
     "cmd-shift-f": "mod.open:redline",
     "ctrl-shift-f": "mod.open:redline",
     "cmd-r": "mod.open:review-notify",
+    "cmd-shift-r": "mod.open:checksheet-review",
     "cmd-e": "mod.open:wtr-desk",
     "cmd-,": "app.settings",
     "cmd-d": "pane.split:right",
