@@ -1,0 +1,7 @@
+{
+  "name": "dotfiles",
+  "owner": { "name": "monz111" },
+  "plugins": [
+    { "name": "herdr-open-path", "source": "./herdr-open-path", "description": "回答中のローカルパスをクリックすると、herdrの右ペインに表示する" }
+  ]
+}
