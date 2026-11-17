@@ -16,4 +16,4 @@ ln -nfs ~/dotfiles/lazygit ~/.config/lazygit
 #ln -nfs ~/dotfiles/qutebrowser/greasemonkey/ ~/.qutebrowser/greasemonkey
 #ln -nfs ~/dotfiles/qutebrowser/userscripts/* ~/.qutebrowser/userscripts/
 mkdir -p ~/.config/herdr-app/layouts ~/.config/herdr-app/mods
-for f in keys.json settings.json themes layouts/my-main.json mods/file-icons mods/mods-hub mods/redline mods/spaces-avatars mods/file-view CLAUDE.md layouts/codee3.json mods/agents-cards mods/spaces-cards mods/pane-cards; do ln -nfs ~/dotfiles/herdr-app/$f ~/.config/herdr-app/$f; done
+for f in keys.json settings.json themes layouts/my-main.json mods/file-icons mods/mods-hub mods/redline mods/spaces-avatars mods/file-view CLAUDE.md layouts/codee3.json mods/agents-cards mods/spaces-cards mods/pane-cards mods/sidebar-footer; do ln -nfs ~/dotfiles/herdr-app/$f ~/.config/herdr-app/$f; done

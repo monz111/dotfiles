@@ -16,21 +16,24 @@ function mix(hex, to, k) {
   const n = parseInt(m[1], 16), t = to === "white" ? 255 : 0;
   return "#" + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * (1 - k) + t * k).toString(16).padStart(2, "0")).join("");
 }
-const gloss = (base, size, r) => {
+// The "Needs You" badge color: a shade deeper than Codee3's measured #df5f4d, by request.
+const NEEDS = "#cf4630";
+// shade: the drop shadow and darker to the right; off for the wide "Needs You" badge.
+const gloss = (base, size, r, shade = true) => {
   const c = (y) => {
     const f = y / (size - 1);
     return f < 0.5 ? mix(base, "white", 0.16 * (1 - 2 * f)) : mix(base, "black", 0.13 * (2 * f - 1));
   };
   const at = () => div().absolute().left(0).right(0);
   // Codee3's drop shadow: about 4px of soft darkening under the tile; the color layers cover the rest.
-  const rows = [1, 2, 3, 4].map((d) => div().absolute().top(d).bottom(-d).left(d / 2).right(d / 2).rounded(r).bg("#00000009"));
+  const rows = (shade ? [1, 2, 3, 4] : []).map((d) => div().absolute().top(d).bottom(-d).left(d / 2).right(d / 2).rounded(r).bg("#00000009"));
   for (let y = size - 1; y >= size - r; y--) rows.push(at().top(0).h(y + 1).rounded(r).bg(c(y)));
   for (let y = 0; y < r; y++) rows.push(at().top(y).bottom(r).rounded(r).bg(c(y)));
   for (let y = r; y < size - r; y++) rows.push(at().top(y).h(1).bg(c(y)));
   const full = () => div().absolute().top(0).bottom(0).right(0).rounded(r);
   return [
     ...rows,
-    ...Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")),
+    ...(shade ? Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")) : []),
     full().left(0).border_t(1).border_color(mix(base, "white", 0.45)),
     full().left(0).border_b(1).border_color(mix(base, "black", 0.35) + "b0"),
   ];
@@ -38,6 +41,8 @@ const gloss = (base, size, r) => {
 
 import { v_flex, h_flex } from "gpui-base";
 import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout } from "herdr";
+// Display only: the first letter upper-cased, the stored name unchanged.
+const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -249,7 +254,7 @@ export default class Agents extends View {
     const color = t[a.status] ?? t.dim;
     if (a.status === "working") return svg("mods/workspace-chrome/spinner.svg").size(12).mx(1).flex_none().text_color(t.working).spin(900);
     if (a.status === "blocked" && compact) return div().size(14).flex_none().rounded(4).bg(t.blocked + "26").text_size(10.5).font_bold().text_color(t.blocked).flex().items_center().justify_center().child("!");
-    if (a.status === "blocked") return div().flex_none().px(6).h(18).rounded(5).bg(t.blocked + "26").text_size(10.5).font_semibold().text_color(t.blocked).flex().items_center().child("Needs you");
+    if (a.status === "blocked") return h_flex().flex_none().relative().h(16).px(6).rounded(5).items_center().children(gloss(NEEDS, 16, 5, false)).child(div().text_size(10).font_semibold().text_color("#ffffff").child("Needs You"));
     // Idle: a ring; done: a dot.
     if (a.status === "idle") return div().size(7).mx(3).flex_none().rounded(4).border(1.5).border_color(t.idle ?? t.dim);
     return div().size(7).mx(3).flex_none().rounded(4).bg(a.status === "done" ? color : t.dim + "00");
@@ -369,7 +374,7 @@ export default class Agents extends View {
       const name = full ? a.space_name || label(a) : more ?? (/^\d+$/.test(label(a)) ? a.program?.name || label(a) : label(a));
       // Codee3-style card: a colored tile with the status as a corner badge, and two lines.
       const tint = shared("space.tileBg")?.[a.space] ?? TILES[[...(a.space_name || name || "")].reduce((h, c) => h + c.codePointAt(0), 0) % TILES.length];
-      const sub = [a.program?.name, when ? duration(now - when) : null, full ? more : a.space_name].filter(Boolean).join(" · ");
+      const sub = [when ? duration(now - when) : null, full ? more : a.space_name].filter(Boolean).join(" · ");
       return h_flex()
         .id(`ag-${a.address}`)
         .px(8)
@@ -407,8 +412,8 @@ export default class Agents extends View {
               : a.status === "idle" ? div().size(9).rounded(5).border(1.5).border_color(t.idle ?? t.dim)
               : div().size(9).rounded(5).bg(t[a.status] ?? t.dim))))
         .child(v_flex().flex_1().min_w(0).gap(1)
-          .child(div().truncate().font_semibold().text_color(idle ? t.muted : t.foreground).child(name))
-          .child(div().truncate().text_size(11).text_color(t.dim).child(sub)))
+          .child(div().truncate().text_size(14).line_height("17px").font_semibold().text_color(idle ? t.muted : t.foreground).child(cap(name)))
+          .child(div().truncate().text_size(11).line_height("14px").text_color(t.dim).child(sub)))
         .when(Boolean(machine), el => el.child(div().text_size(10).text_color(t.dim).child(machine)))
         .when(subs.length > 0, el => el.child(fold(a, subs)))
         .when(this.hovered === a.address, el => el.child(pin))

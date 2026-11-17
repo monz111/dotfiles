@@ -40,6 +40,8 @@ const gloss = (base, size, r) => {
 
 import { v_flex, h_flex } from "gpui-base";
 import { spaces, machines, panes, run, openOverlay, exec, hc, theme, shared, setShared, watchFolder, window, layout } from "herdr";
+// Display only: the first letter upper-cased, the stored name unchanged.
+const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
 function find(node, id) {
   if (node?.id === id) return node;
@@ -500,7 +502,7 @@ export default class Spaces extends View {
               // Emoji ink sits ~1px left and ~0.5px high of its text box (measured), so nudge it to the tile's center.
               .child(tile.emoji ? div().ml(2).mt(1).child(tile.emoji) : ([...w.name][0]?.toUpperCase() ?? "?")));
           })
-          .child(div().flex_shrink(0).max_w(150).truncate().font_semibold().text_color(t.foreground).child(w.name))
+          .child(div().flex_shrink(0).max_w(150).truncate().text_size(14).font_semibold().text_color(t.foreground).child(cap(w.name)))
           .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
       );
   }

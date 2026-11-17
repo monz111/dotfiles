@@ -18,21 +18,24 @@ function mix(hex, to, k) {
   const n = parseInt(m[1], 16), t = to === "white" ? 255 : 0;
   return "#" + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * (1 - k) + t * k).toString(16).padStart(2, "0")).join("");
 }
-const gloss = (base, size, r) => {
+// The "Needs You" badge color: a shade deeper than Codee3's measured #df5f4d, by request.
+const NEEDS = "#cf4630";
+// shade: darker to the right; off for the wide "Needs You" badge.
+const gloss = (base, size, r, shade = true) => {
   const c = (y) => {
     const f = y / (size - 1);
     return f < 0.5 ? mix(base, "white", 0.16 * (1 - 2 * f)) : mix(base, "black", 0.13 * (2 * f - 1));
   };
   const at = () => div().absolute().left(0).right(0);
-  // Codee3's drop shadow: about 4px of soft darkening under the tile; the color layers cover the rest.
-  const rows = [1, 2, 3, 4].map((d) => div().absolute().top(d).bottom(-d).left(d / 2).right(d / 2).rounded(r).bg("#00000009"));
+  // No drop shadow here, unlike spaces-cards/agents-cards: it read as a smudge under the pane header icons.
+  const rows = [];
   for (let y = size - 1; y >= size - r; y--) rows.push(at().top(0).h(y + 1).rounded(r).bg(c(y)));
   for (let y = 0; y < r; y++) rows.push(at().top(y).bottom(r).rounded(r).bg(c(y)));
   for (let y = r; y < size - r; y++) rows.push(at().top(y).h(1).bg(c(y)));
   const full = () => div().absolute().top(0).bottom(0).right(0).rounded(r);
   return [
     ...rows,
-    ...Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")),
+    ...(shade ? Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")) : []),
     full().left(0).border_t(1).border_color(mix(base, "white", 0.45)),
     full().left(0).border_b(1).border_color(mix(base, "black", 0.35) + "b0"),
   ];
@@ -102,10 +105,10 @@ export default class Pane extends View {
       .child(h_flex().size(24).flex_none().rounded(7).relative().children(gloss(tile, 24, 7)).items_center().justify_center()
         .child(icon(p.program, 14, "#ffffff") ?? div().text_size(11).font_bold().text_color("#ffffff").child([...name][0]?.toUpperCase() ?? "?")))
       .child(div().flex_1().min_w(0).flex().flex_col()
-        .child(div().truncate().font_semibold().text_color(t.foreground).child(name))
-        .child(div().truncate().text_size(10.5).text_color(t.dim).child(folder(p.cwd))))
+        .child(div().truncate().text_size(15).line_height("18px").font_semibold().text_color(t.foreground).child(name))
+        .child(div().truncate().line_height("13px").text_size(10.5).text_color(t.dim).child(folder(p.cwd))))
       .when(st === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(900)))
-      .when(st === "blocked", el => el.child(div().flex_none().px(6).h(18).flex().items_center().rounded(5).bg(t.blocked + "26").text_size(10.5).font_semibold().text_color(t.blocked).child("Needs you")))
+      .when(st === "blocked", el => el.child(h_flex().flex_none().relative().h(16).px(6).rounded(5).items_center().children(gloss(NEEDS, 16, 5, false)).child(div().text_size(10).font_semibold().text_color("#ffffff").child("Needs You"))))
       .when(st === "done", el => el.child(div().size(7).flex_none().rounded(4).bg(t.done)))
       .when(this.hovered, el => el
         .child(this.button(t, `ph-r-${pane}`, "split-right", "pane.split", { direction: "right", pane }))
