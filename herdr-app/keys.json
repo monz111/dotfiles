@@ -16,6 +16,8 @@
     "ctrl-shift-k": "space.prev",
     "cmd-]": "agent.next",
     "cmd-[": "agent.prev",
+    "cmd-shift-j": "agent.next",
+    "cmd-shift-k": "agent.prev",
     "cmd-shift-l": "layout.switch",
     "cmd-n": "space.new",
     "cmd-shift-n": {"command": "space.new", "args": {"argv": ["claude"]}},
@@ -77,8 +79,6 @@
   "terminal": {
     "cmd-j": {"command": "terminal.scroll", "args": {"pages": 0.1}},
     "cmd-k": {"command": "terminal.scroll", "args": {"pages": -0.1}},
-    "cmd-shift-j": {"command": "terminal.scroll", "args": {"pages": 0.5}},
-    "cmd-shift-k": {"command": "terminal.scroll", "args": {"pages": -0.5}},
     "cmd-g": {"command": "terminal.scroll", "args": {"to": "top"}},
     "cmd-shift-g": {"command": "terminal.scroll", "args": {"to": "bottom"}},
     "cmd-f": "terminal.search",
