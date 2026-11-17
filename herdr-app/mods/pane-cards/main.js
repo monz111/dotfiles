@@ -18,10 +18,9 @@ function mix(hex, to, k) {
   const n = parseInt(m[1], 16), t = to === "white" ? 255 : 0;
   return "#" + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * (1 - k) + t * k).toString(16).padStart(2, "0")).join("");
 }
-// The "Needs You" badge color: a shade deeper than Codee3's measured #df5f4d, by request.
+// The "Needs You" badge color: a tone deeper than Codee3's measured #df5f4d, by request.
 const NEEDS = "#cf4630";
-// shade: darker to the right; off for the wide "Needs You" badge.
-const gloss = (base, size, r, shade = true) => {
+const gloss = (base, size, r) => {
   const c = (y) => {
     const f = y / (size - 1);
     return f < 0.5 ? mix(base, "white", 0.16 * (1 - 2 * f)) : mix(base, "black", 0.13 * (2 * f - 1));
@@ -35,9 +34,30 @@ const gloss = (base, size, r, shade = true) => {
   const full = () => div().absolute().top(0).bottom(0).right(0).rounded(r);
   return [
     ...rows,
-    ...(shade ? Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")) : []),
+    ...Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")),
     full().left(0).border_t(1).border_color(mix(base, "white", 0.45)),
     full().left(0).border_b(1).border_color(mix(base, "black", 0.35) + "b0"),
+  ];
+};
+
+// A wide glossy badge ("Needs You"). gloss() can't round it: its corner layers are shorter
+// than 2r when size < 3r, and a layer's radius shrinks to half its height. Here one full-height
+// layer draws the rounded outline, and 1px rows inset to the curve paint the gradient over it.
+const pill = (base, size, r) => {
+  const c = (y) => {
+    const f = y / (size - 1);
+    return f < 0.5 ? mix(base, "white", 0.16 * (1 - 2 * f)) : mix(base, "black", 0.13 * (2 * f - 1));
+  };
+  const inset = (y) => {
+    const d = r - Math.min(y + 0.5, size - y - 0.5);
+    return d > 0 ? Math.ceil(r - Math.sqrt(r * r - d * d)) : 0;
+  };
+  const full = () => div().absolute().top(0).bottom(0).left(0).right(0).rounded(r);
+  return [
+    full().bg(c(size / 2)),
+    ...Array.from({ length: size }, (_, y) => div().absolute().top(y).h(1).left(inset(y)).right(inset(y)).bg(c(y))),
+    full().border_t(1).border_color(mix(base, "white", 0.45)),
+    full().border_b(1).border_color(mix(base, "black", 0.35) + "b0"),
   ];
 };
 
@@ -108,7 +128,7 @@ export default class Pane extends View {
         .child(div().truncate().text_size(15).line_height("18px").font_semibold().text_color(t.foreground).child(name))
         .child(div().truncate().line_height("13px").text_size(10.5).text_color(t.dim).child(folder(p.cwd))))
       .when(st === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(900)))
-      .when(st === "blocked", el => el.child(h_flex().flex_none().relative().h(16).px(6).rounded(5).items_center().children(gloss(NEEDS, 16, 5, false)).child(div().text_size(10).font_semibold().text_color("#ffffff").child("Needs You"))))
+      .when(st === "blocked", el => el.child(h_flex().flex_none().relative().h(16).px(6).rounded(7).items_center().children(pill(NEEDS, 16, 7)).child(div().text_size(10).font_semibold().text_color("#ffffff").child("Needs You"))))
       .when(st === "done", el => el.child(div().size(7).flex_none().rounded(4).bg(t.done)))
       .when(this.hovered, el => el
         .child(this.button(t, `ph-r-${pane}`, "split-right", "pane.split", { direction: "right", pane }))
