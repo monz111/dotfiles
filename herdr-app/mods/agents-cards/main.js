@@ -433,7 +433,7 @@ export default class Agents extends View {
               : div().size(9).rounded(5).bg(t[a.status] ?? t.dim))))
         .child(v_flex().flex_1().min_w(0).gap(1)
           .child(div().truncate().text_size(14).line_height("17px").font_semibold().text_color(idle ? t.muted : t.foreground).child(cap(name)))
-          .child(div().truncate().text_size(11).line_height("14px").text_color(t.dim).child(sub)))
+          .child(div().truncate().text_size(12).line_height("15px").text_color("#8892a9").child(sub)))
         .when(Boolean(machine), el => el.child(div().text_size(10).text_color(t.dim).child(machine)))
         .when(subs.length > 0, el => el.child(fold(a, subs)))
         .when(this.hovered === a.address, el => el.child(pin))
