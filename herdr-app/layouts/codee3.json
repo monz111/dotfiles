@@ -186,5 +186,7 @@
       ]
     }
   ],
-  "theme": "codee3"
+  "theme": "codee3",
+  "font": "SF Mono Square",
+  "ui_font": "SF Mono Square"
 }
