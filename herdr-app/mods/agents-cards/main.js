@@ -399,8 +399,13 @@ export default class Agents extends View {
           .child(div().size(30).rounded(9).relative().children(gloss(tint, 30, 9)).flex().items_center().justify_center()
             .text_size(12).font_bold().text_color("#ffffff")
             .child(pic ? icon(a.program, 16, "#ffffff") : [...(name || "?")].slice(0, 2).join("")))
-          .child(div().absolute().right(-3).bottom(-3).size(11).rounded(6).border(2).border_color(t.chrome)
-            .bg(t[a.status] ?? t.dim)))
+          // The status badge: a mark on a disc in the row's own color (measured on screen). Literal
+          // colors: theme colors turn see-through with window_opacity, letting the tile show through.
+          // Working spins; idle is a ring; done, blocked and the rest are dots in their color.
+          .child(h_flex().absolute().right(-4).bottom(-4).size(15).rounded(8).bg(a.focused ? "#26335a" : "#0e1321").items_center().justify_center()
+            .child(a.status === "working" ? svg("mods/workspace-chrome/spinner.svg").size(11).text_color(t.working).spin(900)
+              : a.status === "idle" ? div().size(9).rounded(5).border(1.5).border_color(t.idle ?? t.dim)
+              : div().size(9).rounded(5).bg(t[a.status] ?? t.dim))))
         .child(v_flex().flex_1().min_w(0).gap(1)
           .child(div().truncate().font_semibold().text_color(idle ? t.muted : t.foreground).child(name))
           .child(div().truncate().text_size(11).text_color(t.dim).child(sub)))
