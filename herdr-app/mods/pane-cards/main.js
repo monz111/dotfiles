@@ -1,0 +1,116 @@
+// A pane's header, for layouts that frame their panes:
+//   { "tab": "active", "pane": { "header": { "content": { "mod": "pane" } } } }
+// Shows the program's icon (the app's program table), the agent's name or
+// the terminal's title, the folder, and the agent's status; buttons split, zoom and close
+// this pane. Props from the app: { pane, terminal }. Click: focus the pane.
+
+import { View, div, svg, image } from "gpui-kit";
+// Codee3-style glossy tile, measured from its screenshots: a 1px light rim on top, a
+// smooth light-to-dark vertical gradient around the base color, a 1px dark rim at the
+// bottom, slightly darker to the right. GPUI divs take only solid colors, so the
+// gradient is painted 1px row by row. A layer's corner radius shrinks with its height,
+// so the corner rows use tall rounded layers (bottom rows: anchored to the top, darkest
+// first; top rows: anchored to the top row, ending where the middle starts), and the
+// straight middle rows are plain strips laid over them.
+function mix(hex, to, k) {
+  const m = /^#([0-9a-f]{6})/i.exec(hex || "");
+  if (!m) return hex;
+  const n = parseInt(m[1], 16), t = to === "white" ? 255 : 0;
+  return "#" + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * (1 - k) + t * k).toString(16).padStart(2, "0")).join("");
+}
+const gloss = (base, size, r) => {
+  const c = (y) => {
+    const f = y / (size - 1);
+    return f < 0.5 ? mix(base, "white", 0.16 * (1 - 2 * f)) : mix(base, "black", 0.13 * (2 * f - 1));
+  };
+  const at = () => div().absolute().left(0).right(0);
+  // Codee3's drop shadow: about 4px of soft darkening under the tile; the color layers cover the rest.
+  const rows = [1, 2, 3, 4].map((d) => div().absolute().top(d).bottom(-d).left(d / 2).right(d / 2).rounded(r).bg("#00000009"));
+  for (let y = size - 1; y >= size - r; y--) rows.push(at().top(0).h(y + 1).rounded(r).bg(c(y)));
+  for (let y = 0; y < r; y++) rows.push(at().top(y).bottom(r).rounded(r).bg(c(y)));
+  for (let y = r; y < size - r; y++) rows.push(at().top(y).h(1).bg(c(y)));
+  const full = () => div().absolute().top(0).bottom(0).right(0).rounded(r);
+  return [
+    ...rows,
+    ...Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")),
+    full().left(0).border_t(1).border_color(mix(base, "white", 0.45)),
+    full().left(0).border_b(1).border_color(mix(base, "black", 0.35) + "b0"),
+  ];
+};
+
+import { h_flex } from "gpui-base";
+import { panes, props, run, theme, home, spaces, shared } from "herdr";
+
+// Fallback when spaces-cards hasn't published a tile color: same palette and hash as agents-cards.
+const TILES = ["#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#ec4899", "#eab308"];
+const tint = (key) => TILES[[...(key || "")].reduce((h, c) => h + c.codePointAt(0), 0) % TILES.length];
+
+function icon(p, size, color) {
+  if (!p?.icon) return null;
+  return p.tint ? svg(p.icon).size(size).flex_none().text_color(color) : image(p.icon).w(size).h(size).flex_none();
+}
+
+function folder(cwd) {
+  if (!cwd) return "";
+  const h = home();
+  return cwd === h ? "~" : cwd.startsWith(h + "/") ? "~" + cwd.slice(h.length) : cwd;
+}
+
+export default class Pane extends View {
+  init() { this.hovered = false; }
+
+  me() {
+    return panes().find((p) => p.pane === props()?.pane);
+  }
+
+  button(t, id, icon, command, args) {
+    return div()
+      .id(id)
+      .p(3)
+      .rounded(4)
+      .text_color(t.dim)
+      .hover((s) => s.bg(t.hover).text_color(t.foreground))
+      .on_click((_e, cx) => {
+        cx.stop_propagation();
+        run(command, args);
+      })
+      .child(svg(`mods/pane/${icon}.svg`).size(14));
+  }
+
+  render(cx) {
+    const t = theme();
+    const p = this.me();
+    if (!p) return div();
+    const name = ((p.program?.agent || p.program?.shell) && p.program.name) || p.title || p.program?.name || "shell";
+    const st = p.status;
+    const pane = p.pane;
+    // Codee3-style header: a colored tile with the program's icon, then name over folder.
+    const space = spaces().find((s) => s.tabs.some((tab) => tab.id === p.tab));
+    const tile = p.program?.agent ? shared("space.tileBg")?.[space?.id] ?? tint(space?.name || name) : t.raised;
+    return h_flex()
+      .id(`pane-head-${pane}`)
+      .size_full()
+      .px(12)
+      .gap(10)
+      .items_center()
+      .bg(t.surface)
+      .border_b(1)
+      .border_color(t.border)
+      .text_size(12)
+      .on_hover((hovered, cx) => { this.hovered = hovered; cx.notify(); })
+      .on_click(() => run("pane.focus", { pane }))
+      .child(h_flex().size(24).flex_none().rounded(7).relative().children(gloss(tile, 24, 7)).items_center().justify_center()
+        .child(icon(p.program, 14, "#ffffff") ?? div().text_size(11).font_bold().text_color("#ffffff").child([...name][0]?.toUpperCase() ?? "?")))
+      .child(div().flex_1().min_w(0).flex().flex_col()
+        .child(div().truncate().font_semibold().text_color(t.foreground).child(name))
+        .child(div().truncate().text_size(10.5).text_color(t.dim).child(folder(p.cwd))))
+      .when(st === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(900)))
+      .when(st === "blocked", el => el.child(div().flex_none().px(6).h(18).flex().items_center().rounded(5).bg(t.blocked + "26").text_size(10.5).font_semibold().text_color(t.blocked).child("Needs you")))
+      .when(st === "done", el => el.child(div().size(7).flex_none().rounded(4).bg(t.done)))
+      .when(this.hovered, el => el
+        .child(this.button(t, `ph-r-${pane}`, "split-right", "pane.split", { direction: "right", pane }))
+        .child(this.button(t, `ph-d-${pane}`, "split-down", "pane.split", { direction: "down", pane }))
+        .child(this.button(t, `ph-z-${pane}`, p.zoomed ? "unzoom" : "zoom", "pane.zoom", { pane }))
+        .child(this.button(t, `ph-x-${pane}`, "close", "pane.close", { pane })));
+  }
+}
