@@ -452,6 +452,13 @@ export default class RepoLauncher extends View {
       const focusNew = (cx) => {
         const fresh = panes().find((p) => p.terminal && !before.has(p.terminal));
         if (fresh) run("pane.focus", { terminal: fresh.terminal });
+        // Claude Code opens with the claude-chat Chat pane on the left and
+        // its terminal on the right: split the Chat off to the right, then swap.
+        if (fresh && action.agent?.key === "claude") {
+          run("pane.split", { pane: fresh.pane, direction: "right", mod: "claude-chat", props: { terminal: fresh.terminal } });
+          run("pane.focus", { terminal: fresh.terminal });
+          run("pane.swap", { direction: "right" });
+        }
         if (fresh || ++tries >= 20) return this.close();
         cx.timer.after(100, focusNew);
       };

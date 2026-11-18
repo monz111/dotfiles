@@ -128,6 +128,13 @@ export async function findRepos(roots) {
     const path = normalize(dir);
     if (!found.has(pathKey(path))) found.set(pathKey(path), { path, root: normalize(root) });
   }
+  // A root with no repository (e.g. ~/Downloads) is listed as a folder itself.
+  const hit = new Set([...found.values()].map((f) => pathKey(f.root)));
+  for (const root of roots.map(normalize)) {
+    if (!hit.has(pathKey(root)) && !missing.some((m) => pathKey(m) === pathKey(root))) {
+      found.set(pathKey(root), { path: root, root });
+    }
+  }
   // Drop a repository inside another one (a submodule, a vendored copy).
   const all = [...found.values()].sort((a, b) => a.path.length - b.path.length);
   const kept = [];
