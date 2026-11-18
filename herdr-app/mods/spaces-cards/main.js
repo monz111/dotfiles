@@ -78,7 +78,9 @@ function launcherTile(g, ...folders) {
   const s = shared("repo-launcher.settings") ?? {};
   for (const path of paths) {
     const key = window()?.platform === "linux" ? path : path.toLowerCase();
-    if (s.emojis?.[key] || s.tileColors?.[key]) return { emoji: s.emojis?.[key] || "", color: s.tileColors?.[key] || null };
+    if (s.emojis?.[key] || s.tileColors?.[key] || s.iconColors?.[key]) {
+      return { emoji: s.emojis?.[key] || "", color: s.tileColors?.[key] || null, ink: s.iconColors?.[key] || null };
+    }
   }
   return {};
 }
@@ -509,9 +511,10 @@ export default class Spaces extends View {
             const shown = shared("space.tileBg") ?? {};
             if (shown[w.id] !== bg) setShared("space.tileBg", { ...shown, [w.id]: bg });
             return el.child(h_flex().size(28).flex_none().rounded(8).relative().children(gloss(bg, 28, 8)).items_center().justify_center()
-              .text_size(tile.emoji ? 16 : 13).font_bold().text_color(lightness(bg) > 70 ? "#1a1a1a" : "#ffffff")
+              .text_size(tile.emoji ? 16 : 13).font_bold().text_color(tile.ink ?? (lightness(bg) > 70 ? "#1a1a1a" : "#ffffff"))
               // Emoji ink sits ~1px left and ~0.5px high of its text box (measured), so nudge it to the tile's center.
-              .child(tile.emoji ? div().ml(2).mt(1).child(tile.emoji) : ([...w.name][0]?.toUpperCase() ?? "?")));
+              .child(tile.emoji?.endsWith(".svg") ? svg(tile.emoji).size(16).text_color(tile.ink ?? (lightness(bg) > 70 ? "#1a1a1a" : "#ffffff"))
+                : tile.emoji ? div().ml(2).mt(1).child(tile.emoji) : ([...w.name][0]?.toUpperCase() ?? "?")));
           })
           .child(v_flex().flex_1().min_w(0)
             .child(div().truncate().text_size(14).line_height("17px").font_semibold().text_color(t.foreground).child(cap(w.name)))

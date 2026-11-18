@@ -36,8 +36,8 @@ herdrが起動のたびに書き直す`~/.config/herdr-app/AGENTS.md`と`*.d.ts`
 
 ## 立体感のあるアイコン（Codee3風）の作り方
 
-実装は`mods/spaces-cards`、`mods/agents-cards`、`mods/pane-cards`の`gloss()`。
-3つのmodに同じ関数を複製して持たせている。直すときは3つとも直す。ただし`pane-cards`だけは、ペインの見出しのアイコンの下が汚れて見えたため、影を描かない。横長の「Needs You」の印は、`gloss()`では高さが角丸の3倍に満たず上の角が小さくなるため、`agents-cards`と`pane-cards`の`pill()`で描く。
+実装は`mods/spaces-cards`、`mods/agents-cards`、`mods/pane-cards`、`mods/repo-launcher`（`ui.js`）の`gloss()`。
+4つのmodに同じ関数を複製して持たせている。直すときは4つとも直す。ただし`pane-cards`だけは、ペインの見出しのアイコンの下が汚れて見えたため、影を描かない。横長の「Needs You」の印は、`gloss()`では高さが角丸の3倍に満たず上の角が小さくなるため、`agents-cards`と`pane-cards`の`pill()`で描く。
 
 Codee3（https://www.codee3.dev）のアイコンを画素単位で測ると、次の作りになっていた（30pxの緑のアイコンの場合）。
 

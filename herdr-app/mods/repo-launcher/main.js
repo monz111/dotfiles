@@ -11,16 +11,16 @@
 
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, SliderState, Slider, SliderTrack, SliderIndicator, SliderThumb } from "gpui-base";
-import { theme, props, closeOverlay, knownAgents, pickFolder, notify, panes, run, settings as appSettings, shared } from "herdr";
+import { exec, theme, props, closeOverlay, knownAgents, pickFolder, notify, panes, run, settings as appSettings, shared } from "herdr";
 import { matchRepo } from "./fuzzy.js";
 import { findRepos, detectAccounts, accountEmail, displayPath, normalize, pathKey, isWindows, powershell, ACCOUNT_AGENTS } from "./scan.js";
 import { agentArgv, open, spacesFor } from "./launch.js";
 import {
-  settings, updateSettings, cache, setCache, isFavorite, toggleFavorite, repoEmoji, setRepoEmoji, repoTileColor, setRepoTileColor, markOpened, lastOpened,
+  settings, updateSettings, cache, setCache, isFavorite, toggleFavorite, repoEmoji, setRepoEmoji, repoIconColor, setRepoIconColor, repoTileColor, setRepoTileColor, markOpened, lastOpened,
   boundKeys, prettyKeys, chordOf, actionOf, bindShortcut, announceShortcut, agentCache, setAgentCache,
 } from "./store.js";
 import {
-  icon, GOLD, tint, spaceColor, repoColor, letterTile, hslHex, hexHueLight, programTile, pill, kbd, hint, toggle,
+  icon, TILE_ICONS, autoInk, GOLD, tint, spaceColor, repoColor, letterTile, hslHex, hexHueLight, programTile, pill, kbd, hint, toggle,
   iconButton, button, segmented, highlighted, ago, sectionTitle,
 } from "./ui.js";
 
@@ -35,6 +35,9 @@ const HEAD_H = 30;
 const ACTION_H = 52;
 // A popup is as tall as its content, so the lists get a fixed height.
 const LIST_MAX = 440;
+// The icon grid of the tile card: 18 cells of 30px (+4 gap) fit its width in the 760px popup.
+const ICON_COLS = 18;
+const ICON_ROW_H = 34;
 const EMPTY_H = 300;
 const SETTINGS_H = 560;
 
@@ -75,6 +78,8 @@ export default class RepoLauncher extends View {
     });
     this.query.on("submit", (_e, cx) => this.choose(this.selectedRepo(), cx));
     this.query.focus();
+    // Repository names are typed in ASCII: switch the input source to ABC (macism, as the ime-ascii mod does).
+    if (!isWindows()) exec("macism", ["com.apple.keylayout.ABC"]).catch(() => {});
     cx.timer.after(600, () => {
       if (this.view === "list") this.query.focus();
     });
@@ -271,23 +276,74 @@ export default class RepoLauncher extends View {
     this.view = "actions";
     this.picking = false;
     // One field for the tile emoji of the shown repository.
-    this.emojiInput = InputState.new({ placeholder: "e.g. 🚀", value: repoEmoji(repo.path) });
-    this.emojiInput.on("change", () => setRepoEmoji(repo.path, this.emojiInput.value()));
+    const saved = repoEmoji(repo.path);
+    this.emojiInput = InputState.new({ placeholder: "e.g. 🚀", value: saved.endsWith(".svg") ? "" : saved });
+    this.iconsOpen = false;
+    this.colorTarget = "bg"; // which color the sliders edit: "bg" (the tile) or "ink" (its letter or icon)
+    this.iconQuery = InputState.new({ placeholder: "Search icons" });
+    this.iconQuery.on("change", (_e, cx) => { this.scrollTop.icons = 0; cx.notify(); });
+    this.iconQuery.on("focus", () => { this.emojiTyping = true; });
+    this.iconQuery.on("blur", () => { this.emojiTyping = false; });
+    // An empty field keeps a picked icon; typed text replaces it.
+    this.emojiInput.on("change", () => {
+      const text = this.emojiInput.value();
+      if (text.trim() || !repoEmoji(repo.path).endsWith(".svg")) setRepoEmoji(repo.path, text);
+    });
     this.emojiInput.on("focus", () => { this.emojiTyping = true; });
     this.emojiInput.on("blur", () => { this.emojiTyping = false; });
-    // The tile color picker: hue and lightness, saved when a drag ends.
+    // The color picker: hue and lightness, saved when a drag ends.
     const [hue, light] = hexHueLight(repoTileColor(repo.path)) ?? [210, 50];
     this.hue = SliderState.new({ min: 0, max: 359, value: hue });
     this.light = SliderState.new({ min: 0, max: 100, value: light });
     for (const state of [this.hue, this.light]) {
       state.on("change", (_v, cx) => { this.picking = true; cx.notify(); });
-      state.on("release", () => setRepoTileColor(repo.path, this.pickedColor()));
+      state.on("release", () => this.setTargetColor(this.pickedColor()));
     }
     this.actionAt = 0;
     this.scrollTop.actions = 0;
+    this.scrollTop.icons = 0;
     this.follow = true;
     this.focusRoot(cx);
     cx.notify();
+  }
+
+  /** Opens the icon grid with the keys in its search field, or closes it and gives the keys back. */
+  toggleIcons(cx) {
+    this.iconsOpen = !this.iconsOpen;
+    if (this.iconsOpen) {
+      this.iconQuery.focus();
+      this.emojiTyping = true; // the search field has the keys, even before its focus event
+    }
+    else {
+      this.emojiTyping = false;
+      this.focusRoot(cx);
+    }
+    cx.notify();
+  }
+
+  /** Drops the emoji or icon, so the tile shows the first letter again. */
+  showLetter(cx) {
+    setRepoEmoji(this.repo.path, "");
+    this.emojiInput.set_value("");
+    cx.notify();
+  }
+
+  /** The saved color the sliders edit, or null for automatic. */
+  targetColor() {
+    return (this.colorTarget === "ink" ? repoIconColor : repoTileColor)(this.repo.path);
+  }
+
+  setTargetColor(color) {
+    (this.colorTarget === "ink" ? setRepoIconColor : setRepoTileColor)(this.repo.path, color);
+  }
+
+  /** Switches the sliders to the tile or its ink, and moves them to that color. */
+  pickTarget(target) {
+    this.colorTarget = target;
+    this.picking = false;
+    const [h, l] = hexHueLight(this.targetColor()) ?? (target === "ink" ? [0, 100] : [210, 50]);
+    this.hue.set_value(h);
+    this.light.set_value(l);
   }
 
   pickedColor() {
@@ -471,6 +527,10 @@ export default class RepoLauncher extends View {
     if (this.view === "actions") {
       // Typing in the emoji field: Enter or Esc gives the keys back to the choices.
       if (this.emojiTyping) {
+        if (ctrl && k === "i") {
+          cx.stop_propagation();
+          return this.toggleIcons(cx);
+        }
         if (k === "enter" || k === "escape") {
           cx.stop_propagation();
           this.emojiTyping = false;
@@ -495,6 +555,9 @@ export default class RepoLauncher extends View {
         toggleFavorite(this.repo.path);
       } else if (ctrl && k === "e") {
         updateSettings((s) => ({ reuse: !s.reuse }));
+      } else if (ctrl && k === "i") {
+        cx.stop_propagation();
+        return this.toggleIcons(cx);
       } else return;
       cx.stop_propagation();
       cx.notify();
@@ -726,7 +789,7 @@ export default class RepoLauncher extends View {
           this.at = Math.max(0, this.selectable().findIndex((x) => x.repo === repo));
           this.choose(repo, cx);
         })
-        .child(letterTile(repo.name, color, 32, repoEmoji(repo.path)))
+        .child(letterTile(repo.name, color, 32, repoEmoji(repo.path), repoIconColor(repo.path)))
         .child(v_flex().flex_1().min_w(0).gap(2)
           .child(h_flex().min_w(0).gap(6).items_center()
             .child(highlighted(repo.name, match?.name, { color: t.foreground, hit: t.accent, size: 13.5, bold: true }))
@@ -763,7 +826,7 @@ export default class RepoLauncher extends View {
     const head = this.header(t, repo.name, displayPath(repo.path), {
       leading: h_flex().gap(8).items_center()
         .child(iconButton(t, "rl-back", "back", (cx) => this.back(cx), { tooltip: "Back (Esc)" }))
-        .child(letterTile(repo.name, color, 34, repoEmoji(repo.path))),
+        .child(letterTile(repo.name, color, 34, repoEmoji(repo.path), repoIconColor(repo.path))),
       trailing: [
         iconButton(t, "rl-fav", fav ? "star-fill" : "star", (cx) => { toggleFavorite(repo.path); cx.notify(); },
           { tooltip: fav ? "Remove from favorites (Ctrl+S)" : "Add to favorites (Ctrl+S)", color: fav ? GOLD : null }),
@@ -799,14 +862,19 @@ export default class RepoLauncher extends View {
       .child(hint(t, ["↵"], "open"))
       .child(hint(t, ["1–9"], "pick"))
       .child(hint(t, [prettyKeys("ctrl-e")], "reuse"))
+      .child(hint(t, [prettyKeys("ctrl-i")], "icons"))
       .child(div().flex_1())
       .child(hint(t, ["⌫"], "back"))
       .child(hint(t, ["Esc"], "close"));
 
-    // The look of this repository's tile: an emoji in place of the letter, and its color.
-    const custom = repoTileColor(repo.path);
+    // The look of this repository's tile: an emoji or SVG icon in place of the letter, and two colors.
+    const custom = this.targetColor();
     const picked = this.pickedColor();
-    const colorSlider = (id, state, colors) => Slider.new(state).w(150).flex_none().child(
+    const live = (target) => (this.colorTarget === target && this.picking ? picked : null);
+    const bg = live("bg") ?? repoTileColor(repo.path) ?? color;
+    const ink = live("ink") ?? repoIconColor(repo.path);
+    const emoji = repoEmoji(repo.path);
+    const colorSlider = (id, state, colors) => Slider.new(state).flex_1().min_w(80).child(
       SliderTrack.new(state).flex().items_center().h(22).w_full().child(
         SliderIndicator.new(state).relative().w_full().h(10).rounded(5)
           .child(h_flex().absolute().top(0).left(0).size_full().rounded(5).overflow_hidden()
@@ -815,44 +883,91 @@ export default class RepoLauncher extends View {
             .border_2().border_color(t.border).ml(-7))));
     const hues = Array.from({ length: 36 }, (_, i) => hslHex(i * 10, TILE_SATURATION, 50));
     const lights = Array.from({ length: 11 }, (_, i) => hslHex(Number(this.hue.value()), TILE_SATURATION, i * 10));
-    // 12 preset colors, one per 30 degrees of hue; a click also moves the sliders there.
+    // 12 preset colors, one per 30 degrees of hue, then white and black; a click also moves the sliders there.
     const presets = [
       ...Array.from({ length: 12 }, (_, i) => [i * 30, 50, hslHex(i * 30, TILE_SATURATION, 50)]),
       [null, 100, "#ffffff"],
       [null, 0, "#000000"],
     ];
-    const presetRow = h_flex().gap(6).items_center().pl(68)
+    const chip = (id, label, on, tooltip, onClick) => h_flex().id(id).h(24).px(9).flex_none().items_center().rounded(6).cursor_pointer()
+      .bg(on ? tint(t.accent, "30") : t.background).border_1().border_color(on ? tint(t.accent, "80") : t.border)
+      .text_size(11).text_color(on ? t.foreground : t.muted).hover((st) => st.text_color(t.foreground))
+      .tooltip(tooltip).on_click(onClick).child(label);
+    const label = (text) => div().w(52).flex_none().text_size(11.5).text_color(t.dim).child(text);
+
+    const iconRow = h_flex().gap(8).items_center()
+      .child(label("Icon"))
+      .child(h_flex().w(84).h(26).px(8).flex_none().items_center().rounded(6).bg(t.background).border_1().border_color(t.border)
+        .child(Input.new(this.emojiInput).flex_1().h_full().text_size(13).text_color(t.foreground)))
+      .child(iconButton(t, "rl-tile-icons", "tiles/layout-grid", (cx) => this.toggleIcons(cx),
+        { tooltip: `${this.iconsOpen ? "Hide" : "Browse"} icons (${prettyKeys("ctrl-i")})`, active: this.iconsOpen, size: 26 }))
+      .when(Boolean(emoji), (e) => e.child(iconButton(t, "rl-tile-letter", "tiles/type", (cx) => this.showLetter(cx),
+        { tooltip: "Show the first letter again", size: 26 })))
+      .child(div().flex_1())
+      .child(segmented(t, "rl-tile-target", [{ value: "bg", label: "Background" }, { value: "ink", label: "Icon color" }],
+        this.colorTarget, (v, cx) => { this.pickTarget(v); cx.notify(); }));
+    const colorRow = h_flex().gap(8).items_center()
+      .child(label("Color"))
+      .child(div().size(22).flex_none().rounded(6).bg(custom || this.picking ? picked : t.background).border_1().border_color(t.border))
+      .child(colorSlider("rl-tile-hue", this.hue, hues))
+      .child(colorSlider("rl-tile-light", this.light, lights))
+      .child(chip("rl-tile-color-auto", "Auto", !custom && !this.picking,
+        this.colorTarget === "ink" ? "Automatic: white, or dark on a light tile" : "Automatic: the space color, else a color from the name",
+        (_e, cx) => { this.picking = false; this.setTargetColor(null); cx.notify(); }));
+    const presetRow = h_flex().gap(5).items_center().pl(60)
       .children(presets.map(([h, l, c], i) => h_flex().id(`rl-tile-preset-${i}`).size(20).flex_none().rounded(5)
         .cursor_pointer().bg(c).border_2().border_color(custom === c ? t.accent : c === "#000000" || c === "#ffffff" ? t.border : "#00000000")
         .on_click((_e, cx) => {
           if (h !== null) this.hue.set_value(h);
           this.light.set_value(l);
           this.picking = false;
-          setRepoTileColor(repo.path, c);
+          this.setTargetColor(c);
           cx.notify();
         })));
-    const tileRow = h_flex().gap(10).items_center()
-      .child(div().w(58).flex_none().text_color(t.muted).child("Tile icon"))
-      .child(h_flex().w(90).flex_none().text_size(13).child(Input.new(this.emojiInput)))
-      .child(div().flex_none().ml(8).text_color(t.muted).child("Color"))
-      .child(div().size(22).flex_none().rounded(6).bg(custom || this.picking ? picked : t.background).border_1().border_color(t.border))
-      .child(colorSlider("rl-tile-hue", this.hue, hues))
-      .child(colorSlider("rl-tile-light", this.light, lights))
-      .child(h_flex().id("rl-tile-color-auto").h(22).px(8).flex_none().items_center().rounded(6).cursor_pointer()
-        .bg(custom ? t.background : tint(t.accent, "30")).text_size(11).text_color(custom ? t.dim : t.foreground)
-        .tooltip("Automatic: the space color, else a color from the name")
-        .on_click((_e, cx) => { this.picking = false; setRepoTileColor(repo.path, null); cx.notify(); })
-        .child("Auto"));
-    const tileCard = v_flex().mx(16).mt(10).px(12).py(8).gap(8).flex_none().rounded(11)
+
+    // The icons, filtered by the search field; each cell shows the icon on the tile's own colors.
+    const query = this.iconQuery.value().trim().toLowerCase();
+    const shown = TILE_ICONS.filter((path) => !query || path.split("/").pop().includes(query));
+    const cellInk = ink || autoInk(bg);
+    const rows = Array.from({ length: Math.ceil(shown.length / ICON_COLS) }, (_, i) => shown.slice(i * ICON_COLS, (i + 1) * ICON_COLS));
+    const grid = v_flex().gap(8).pt(8).border_t(1).border_color(t.border)
+      .child(h_flex().gap(8).items_center()
+        .child(h_flex().flex_1().h(28).px(10).gap(8).items_center().rounded(7).bg(t.background).border_1().border_color(t.border)
+          .child(svg(icon("search")).size(13).text_color(t.dim))
+          .child(Input.new(this.iconQuery).flex_1().h_full().text_size(12).text_color(t.foreground)))
+        .child(div().flex_none().text_size(11).text_color(t.dim).child(`${shown.length} / ${TILE_ICONS.length}`)))
+      // About 1,700 icons: only the rows in view are drawn, like the lists.
+      .child(this.scrollList(t, "icons", rows, rows.map(() => ICON_ROW_H), 176, [-1, -1], (row) => h_flex().gap(4)
+        .children(row.map((path) => {
+          const on = emoji === path;
+          return h_flex().id(`rl-tile-icon-${path}`).size(30).flex_none().items_center().justify_center().rounded(7).cursor_pointer()
+            .bg(on ? bg : t.background).border_2().border_color(on ? t.accent : "#00000000")
+            .when(!on, (e) => e.hover((st) => st.bg(t.hover)))
+            .tooltip(path.split("/").pop().replace(/\.svg$/, ""))
+            .on_click((_e, cx) => {
+              // A second click on the picked icon goes back to the letter.
+              setRepoEmoji(repo.path, on ? "" : path);
+              this.emojiInput.set_value("");
+              cx.notify();
+            })
+            .child(svg(path).size(17).text_color(on ? cellInk : t.foreground));
+        }))));
+
+    const tileCard = h_flex().mx(16).mt(10).px(12).py(10).gap(12).flex_none().items_start().rounded(11)
       .bg(t.raised).border_1().border_color(t.border).text_size(12)
-      .child(tileRow)
-      .child(presetRow);
+      // A live preview, so a drag shows its color before it is saved.
+      .child(letterTile(repo.name, bg, 48, emoji, ink))
+      .child(v_flex().flex_1().min_w(0).gap(8)
+        .child(iconRow)
+        .child(colorRow)
+        .child(presetRow)
+        .when(this.iconsOpen, (e) => e.child(grid)));
 
     return v_flex().size_full().min_h(0)
       .child(head)
+      .child(listEl)
       .child(banner)
       .child(tileCard)
-      .child(listEl)
       .child(footer);
   }
 

@@ -6,6 +6,7 @@ import { h_flex, v_flex } from "gpui-base";
 import { shared } from "herdr";
 import { MOD } from "./store.js";
 import { segments } from "./fuzzy.js";
+import { LUCIDE } from "./lucide.js";
 
 export const icon = (name) => `mods/${MOD}/${name}.svg`;
 
@@ -56,12 +57,64 @@ export function hexHueLight(hex) {
 /** A stable color for a repository name. */
 export const repoColor = (name) => PALETTE[hash(name.toLowerCase()) % PALETTE.length];
 
-/** A rounded square with `emoji`, else the first letter of `name`. */
-export function letterTile(name, color, size = 30, emoji = "") {
+/** The icons a tile can show in place of its letter: the app's program logos and Lucide symbols in tiles/. */
+export const TILE_ICONS = [
+  ...("agent amp ansible antigravity apt astro biome brew bun caddy cargo claude cmake codex command-code composer " +
+    "copilot crush curl cursor dart deno django-admin dnf docker dotnet dsh-tui electron emacs erl esbuild eslint " +
+    "expo fastapi ffmpeg flask flutter fly gcloud gemini gh ghci git glab go gradle grok helm hermes htop hx iex " +
+    "java jest julia jupyter kimi kiro kotlin kubectl lazygit less lua make mastracode mongosh muse mvn mysql nano " +
+    "netlify next nginx nix node npm nuxt nvim ocaml ollama opencode pacman perl php pi pig pnpm podman poetry " +
+    "prettier prime-agent prisma program psql pytest python qoder r redis-cli rg ruby ruff scala shell sqlite3 ssh " +
+    "supabase swift tauri terraform tmux tsc turbo uv vercel vim vite vitest webpack wrangler yarn zig ").trim().split(" ").map((n) => `icons/${n}.svg`),
+  ...LUCIDE.map((n) => `mods/${MOD}/tiles/${n}.svg`),
+];
+
+// Copied from spaces-cards (and agents-cards, pane-cards): fix all of them together.
+// Codee3-style glossy tile, measured from its screenshots: a 1px light rim on top, a
+// smooth light-to-dark vertical gradient around the base color, a 1px dark rim at the
+// bottom, slightly darker to the right. GPUI divs take only solid colors, so the
+// gradient is painted 1px row by row. A layer's corner radius shrinks with its height,
+// so the corner rows use tall rounded layers (bottom rows: anchored to the top, darkest
+// first; top rows: anchored to the top row, ending where the middle starts), and the
+// straight middle rows are plain strips laid over them.
+function mix(hex, to, k) {
+  const m = /^#([0-9a-f]{6})/i.exec(hex || "");
+  if (!m) return hex;
+  const n = parseInt(m[1], 16), t = to === "white" ? 255 : 0;
+  return "#" + [16, 8, 0].map((s) => Math.round(((n >> s) & 255) * (1 - k) + t * k).toString(16).padStart(2, "0")).join("");
+}
+const gloss = (base, size, r) => {
+  const c = (y) => {
+    const f = y / (size - 1);
+    return f < 0.5 ? mix(base, "white", 0.16 * (1 - 2 * f)) : mix(base, "black", 0.13 * (2 * f - 1));
+  };
+  const at = () => div().absolute().left(0).right(0);
+  // Codee3's drop shadow: about 4px of soft darkening under the tile; the color layers cover the rest.
+  const rows = [1, 2, 3, 4].map((d) => div().absolute().top(d).bottom(-d).left(d / 2).right(d / 2).rounded(r).bg("#00000009"));
+  for (let y = size - 1; y >= size - r; y--) rows.push(at().top(0).h(y + 1).rounded(r).bg(c(y)));
+  for (let y = 0; y < r; y++) rows.push(at().top(y).bottom(r).rounded(r).bg(c(y)));
+  for (let y = r; y < size - r; y++) rows.push(at().top(y).h(1).bg(c(y)));
+  const full = () => div().absolute().top(0).bottom(0).right(0).rounded(r);
+  return [
+    ...rows,
+    ...Array.from({ length: 4 }, (_, k) => full().left(Math.round(size * (0.3 + 0.17 * k))).bg("#00000007")),
+    full().left(0).border_t(1).border_color(mix(base, "white", 0.45)),
+    full().left(0).border_b(1).border_color(mix(base, "black", 0.35) + "b0"),
+  ];
+};
+
+/** The automatic ink on a tile: dark on a light background, else white. */
+export const autoInk = (color) => ((hexHueLight(color)?.[1] ?? 0) > 70 ? "#1a1a1a" : "#ffffff");
+
+/** A rounded square with `emoji` (text, or the path of an .svg), else the first letter of `name`, drawn in `ink`. */
+export function letterTile(name, color, size = 30, emoji = "", ink = null) {
   const letter = ([...String(name).replace(/^[._-]+/, "")][0] ?? "?").toUpperCase();
-  return h_flex().size(size).flex_none().rounded(Math.round(size * 0.28)).items_center().justify_center()
-    .bg(color).text_color((hexHueLight(color)?.[1] ?? 0) > 70 ? "#1a1a1a" : "#ffffff").font_bold().text_size(Math.round(size * (emoji ? 0.56 : 0.44)))
-    .child(emoji || letter);
+  const fg = ink || autoInk(color);
+  const r = Math.round(size * 0.28);
+  return h_flex().size(size).flex_none().rounded(r).relative().children(gloss(color, size, r)).items_center().justify_center()
+    .text_color(fg).font_bold().text_size(Math.round(size * (emoji ? 0.56 : 0.44)))
+    // An emoji's ink sits ~1px left and ~0.5px high of its box (spaces-cards measured it): nudge it to the center.
+    .child(emoji.endsWith(".svg") ? svg(emoji).size(Math.round(size * 0.56)).text_color(fg) : emoji ? div().ml(2).mt(1).child(emoji) : letter);
 }
 
 /** The tile of a program from knownAgents() or panes(): its icon on its tile color. */

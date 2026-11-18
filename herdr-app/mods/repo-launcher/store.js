@@ -23,6 +23,7 @@ const DEFAULTS = {
   recent: {}, // path key -> time the repository was last opened
   emojis: {}, // path key -> text shown on the repository tile instead of its letter
   tileColors: {}, // path key -> background color of the repository tile
+  iconColors: {}, // path key -> color of the letter or SVG icon on the repository tile
 };
 
 export function settings() {
@@ -89,6 +90,17 @@ export function setRepoTileColor(path, color) {
     if (color) tileColors[pathKey(path)] = color;
     else delete tileColors[pathKey(path)];
     return { tileColors };
+  });
+}
+
+export const repoIconColor = (path) => settings().iconColors[pathKey(path)] ?? null;
+
+export function setRepoIconColor(path, color) {
+  updateSettings((s) => {
+    const iconColors = { ...s.iconColors };
+    if (color) iconColors[pathKey(path)] = color;
+    else delete iconColors[pathKey(path)];
+    return { iconColors };
   });
 }
 

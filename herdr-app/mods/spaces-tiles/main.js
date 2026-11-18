@@ -42,7 +42,9 @@ function launcherTile(g, ...folders) {
   const s = shared("repo-launcher.settings") ?? {};
   for (const path of paths) {
     const key = window()?.platform === "linux" ? path : path.toLowerCase();
-    if (s.emojis?.[key] || s.tileColors?.[key]) return { emoji: s.emojis?.[key] || "", color: s.tileColors?.[key] || null };
+    if (s.emojis?.[key] || s.tileColors?.[key] || s.iconColors?.[key]) {
+      return { emoji: s.emojis?.[key] || "", color: s.tileColors?.[key] || null, ink: s.iconColors?.[key] || null };
+    }
   }
   return {};
 }
@@ -459,8 +461,9 @@ export default class Spaces extends View {
             const tile = launcherTile(g, at, w.folder);
             const bg = tile.color ?? fill;
             return el.child(h_flex().size(18).flex_none().rounded(5).bg(bg).items_center().justify_center()
-              .text_size(tile.emoji ? 12 : 10.5).font_bold().text_color(lightness(bg) > 70 ? "#1a1a1a" : "#ffffff")
-              .child(tile.emoji || ([...w.name][0]?.toUpperCase() ?? "?")));
+              .text_size(tile.emoji ? 12 : 10.5).font_bold().text_color(tile.ink ?? (lightness(bg) > 70 ? "#1a1a1a" : "#ffffff"))
+              .child(tile.emoji?.endsWith(".svg") ? svg(tile.emoji).size(11).text_color(tile.ink ?? (lightness(bg) > 70 ? "#1a1a1a" : "#ffffff"))
+                : tile.emoji || ([...w.name][0]?.toUpperCase() ?? "?")));
           })
           .child(div().flex_shrink(0).max_w(150).truncate().text_color(t.foreground).child(w.name))
           .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
