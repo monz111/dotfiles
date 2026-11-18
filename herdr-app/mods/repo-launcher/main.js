@@ -242,7 +242,8 @@ export default class RepoLauncher extends View {
 
   /** The choices of the actions view. */
   actions() {
-    const out = [{ id: "terminal", title: "Terminal", subtitle: "A shell in the repository", program: { icon: "icons/shell.svg", tint: true, color: theme().foreground, tile: theme().raised } }];
+    const out = [];
+    const terminal = { id: "terminal", title: "Terminal", subtitle: "A shell in the repository", program: { icon: "icons/shell.svg", tint: true, color: theme().foreground, tile: theme().raised } };
     const args = settings().args;
     for (const agent of this.agents) {
       const extra = (args[agent.key] ?? "").trim();
@@ -264,7 +265,9 @@ export default class RepoLauncher extends View {
         out.push({ id: agent.key, title: agent.name, subtitle: command, agent, extra, program: agent });
       }
     }
-    return out;
+    // Claude Code first, then the terminal, then the other agents
+    const claude = out.filter((a) => a.agent?.key === "claude");
+    return [...claude, terminal, ...out.filter((a) => a.agent?.key !== "claude")];
   }
 
   // ---------------------------------------------------------------------------
@@ -477,7 +480,7 @@ export default class RepoLauncher extends View {
 
   quickTerminal(repo, cx) {
     this.repo = repo;
-    this.launch(this.actions()[0], cx);
+    this.launch(this.actions().find((a) => a.id === "terminal"), cx);
   }
 
   async captureKey(e, cx) {
