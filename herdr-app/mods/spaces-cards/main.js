@@ -1,7 +1,7 @@
 // Copy of spaces-tiles with Codee3-style rows: bigger tiles, no own background (the sidebar gradient shows).
 // Workspace spaces: repo-launcher tiles (emoji, color), else stable colored avatars, worktrees under their checkout,
-// grouped by machine when more than one is known. After a space's name, the repo
-// its first terminal is in now, only where unusual: branch, ahead/behind. Agent state lives in the agents list, not here. Click to
+// grouped by machine when more than one is known. Under a space's name, the repo
+// its first terminal is in now: branch, ahead/behind, changed files. Agent state lives in the agents list, not here. Click to
 // switch, right-click for its menu, drag to reorder.
 
 import { View, div, svg } from "gpui-kit";
@@ -61,7 +61,7 @@ function place(s, ps) {
   const tabs = new Set((s.tabs ?? []).map((c) => c.id));
   return ps.find((p) => tabs.has(p.tab) && p.cwd)?.cwd || s.folder;
 }
-const rowHeight = ({ tree }) => (tree ? 28 : 40);
+const rowHeight = ({ tree }) => (tree ? 36 : 44);
 const RAIL_CELL = 32;
 
 // The tile that repo-launcher (Cmd+P) keeps for a repository: { emoji, color }.
@@ -278,9 +278,16 @@ export default class Spaces extends View {
       const common = await exec("git", ["rev-parse", "--path-format=absolute", "--git-common-dir"], { cwd, on });
       const repo = common.stdout.trim();
       const name = repo.endsWith("/.git") ? base(repo.slice(0, -5)) : base(repo).replace(/\.git$/, "");
-      const info = { name, branch: null, ahead: 0, behind: 0, repo: JSON.stringify([on, repo]), linked: repo !== `${top.stdout.trim()}/.git` };
+      const info = { name, branch: null, ahead: 0, behind: 0, added: 0, modified: 0, deleted: 0, untracked: 0, repo: JSON.stringify([on, repo]), linked: repo !== `${top.stdout.trim()}/.git` };
       for (const line of r.stdout.split("\n")) {
-        if (line.startsWith("# branch.head ")) info.branch = line.slice(14);
+        // Changed files: "1 XY …" / "2 XY …" (renamed), "u XY …" (conflict), "? path" (untracked).
+        if (/^[12u] /.test(line)) {
+          const xy = line.slice(2, 4);
+          if (xy.includes("D")) info.deleted++;
+          else if (xy[0] === "A") info.added++;
+          else info.modified++;
+        } else if (line.startsWith("? ")) info.untracked++;
+        else if (line.startsWith("# branch.head ")) info.branch = line.slice(14);
         else if (line.startsWith("# branch.ab ")) {
           const [a, b] = line.slice(12).split(" ");
           info.ahead = Math.abs(parseInt(a, 10)) || 0;
@@ -418,26 +425,30 @@ export default class Spaces extends View {
     });
   }
 
-  // Only what's unusual, after the name: "herdr \u00b7 spike \u21912 \u21931". The repo or
-  // branch goes when the name already says it (a worktree is named after its branch),
-  // and master/main go: nearly every space is on one.
+  // The second line: "herdr \u00b7 main \u21912 \u21931", then changed files by kind. The repo goes when
+  // the name already says it; the branch is always there.
   gitTail(g, tree, name, t) {
-    const raw = g.branch ?? "detached";
-    const same = (a) => a.toLowerCase() === name.toLowerCase();
-    const branch = same(raw) || raw === "master" || raw === "main" ? "" : raw;
-    const repo = tree || same(g.name) ? "" : g.name;
-    const where = [repo, branch].filter(Boolean).join(" \u00b7 ");
+    const repo = tree || g.name.toLowerCase() === name.toLowerCase() ? "" : g.name;
+    const where = [repo, g.branch ?? "detached"].filter(Boolean).join(" \u00b7 ");
+    const count = (n, sign, color) => (el) => el.when(n > 0, (el) => el.child(div().flex_none().text_color(color).child(`${sign}${n}`)));
+    // Changed files: an icon in place of the sign.
+    const files = (n, icon, color) => (el) => el.when(n > 0, (el) => el.child(h_flex().flex_none().gap(2).items_center().text_color(color)
+      .child(svg(`spaces-cards-icons/sign-${icon}.svg`).size(12).flex_none()).child(String(n))));
     return h_flex()
-      .flex_1()
       .min_w(0)
       .gap(5)
-      .justify_end()
       .items_center()
       .text_size(11.5)
       .text_color(t.dim)
-      .when(Boolean(where), (el) => el.child(div().min_w(0).truncate().child(where)))
-      .when(g.ahead > 0, (el) => el.child(div().flex_none().text_color(t.ansi2).child(`\u2191${g.ahead}`)))
-      .when(g.behind > 0, (el) => el.child(div().flex_none().text_color(t.ansi1).child(`\u2193${g.behind}`)));
+      .line_height("14px")
+      .child(svg("mods/workspace-chrome/branch.svg").size(11).flex_none().mr(-2))
+      .child(div().min_w(0).truncate().child(where))
+      .map(count(g.ahead, "\u2191", t.ansi2))
+      .map(count(g.behind, "\u2193", t.ansi1))
+      .map(files(g.modified, "modified", t.ansi3))
+      .map(files(g.added, "added", t.ansi2))
+      .map(files(g.deleted, "deleted", t.ansi1))
+      .map(files(g.untracked, "untracked", t.dim));
   }
 
   row({ w, i, at, g, tree }, t) {
@@ -502,8 +513,9 @@ export default class Spaces extends View {
               // Emoji ink sits ~1px left and ~0.5px high of its text box (measured), so nudge it to the tile's center.
               .child(tile.emoji ? div().ml(2).mt(1).child(tile.emoji) : ([...w.name][0]?.toUpperCase() ?? "?")));
           })
-          .child(div().flex_shrink(0).max_w(150).truncate().text_size(14).font_semibold().text_color(t.foreground).child(cap(w.name)))
-          .child(g ? this.gitTail(g, tree, w.name, t) : div().flex_1()),
+          .child(v_flex().flex_1().min_w(0)
+            .child(div().truncate().text_size(14).line_height("17px").font_semibold().text_color(t.foreground).child(cap(w.name)))
+            .when(Boolean(g), (el) => el.child(this.gitTail(g, tree, w.name, t)))),
       );
   }
 

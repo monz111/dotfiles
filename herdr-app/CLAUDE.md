@@ -13,6 +13,7 @@ herdrが起動のたびに書き直す`~/.config/herdr-app/AGENTS.md`と`*.d.ts`
 - シンボリックリンクの先のレイアウトのファイルを編集しても、herdrは読み直さない。`herdr-app do layout.switch --name main`で一度ほかのレイアウトに切り替えてから、元のレイアウトに戻す。
 - herdrの起動後に張ったmodのシンボリックリンクは、リンクの先のファイルを編集しても、動いているmodが新しいコードに替わらないことがある（`~/Projects/mine/claude-chat`で確認。起動前からあるリンクとの違いが原因と推測しているが、未確認）。`herdr-app check`が通り、`herdr-app status`にエラーがなくても、古いコードのまま動き続ける。レイアウトを一度切り替えて戻すと、新しいコードで始め直す。新しいコードで動いているか怪しいときは、一時的にファイルへ値を書くコードを入れて確かめる。
 - シンボリックリンクにしたmodのフォルダの中の画像（`svg("mods/<name>/x.svg")`）は表示されないことがある（`claude-chat`で確認）。アイコンは、herdrのhomeの実フォルダ（例：`~/.config/herdr-app/claude-chat-icons/`）に写して、そのパスで指す。`wtr-desk`も同じやり方。
+  - `mods/`の外の画像は、同じ名前のファイルを上書きしても、herdrは一度読んだものを表示し続ける（`spaces-cards`で確認）。中身を変えたらファイル名も変える。
 - `herdr-app shot`は最後に描いた画面を保存するだけ。herdrのウィンドウが後ろにあると描き直されず、古い画面が撮れることがある。撮る前に`osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true'`で、herdrが前にあるか確かめる。
 - `herdr-app check <modのフォルダ>`は最初の描画しか試さない。Spacesの一覧のように後から描く部分で起きる実行時のエラーは見逃す。modを直したら、毎回`herdr-app shot`で撮った画面も見る。エラーは、そのブロックに「This view could not be rendered」と表示される。
 - `herdr-app shot`はアプリの描画だけを撮る。ウィンドウの透過やブラーで後ろに見えるデスクトップは写らないため、透過の確認には使えない。
