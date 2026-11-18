@@ -6,7 +6,7 @@ herdrが起動のたびに書き直す`~/.config/herdr-app/AGENTS.md`と`*.d.ts`
 ## このフォルダの扱い
 
 - 自分で作ったレイアウト、テーマ、modはこのフォルダ（`~/dotfiles/herdr-app`）に置き、`~/.config/herdr-app`からシンボリックリンクを張る。リンクは`~/dotfiles/ln.sh`にまとめる。
-  - 例外：`repo-launcher`はフォルダの中の画像（アイコン）を使うため、リンクにすると表示されない。`~/.config/herdr-app/mods/repo-launcher`は実フォルダのコピーにし、編集したら`rsync -a --delete ~/dotfiles/herdr-app/mods/repo-launcher/ ~/.config/herdr-app/mods/repo-launcher/`で揃える。`spaces-tiles`も同じくコピー。Claude Codeが`mods/<名前>/`の中を編集したときは、`~/.config/herdr-app/mods/<名前>`が実フォルダなら、`~/.claude/settings.json`のPostToolUseフックが同じrsyncを自動で走らせる。手で編集したときは自分で走らせる。
+  - 例外：`repo-launcher`はフォルダの中の画像（アイコン）を使うため、リンクにすると表示されない。`~/.config/herdr-app/mods/repo-launcher`は実フォルダのコピーにし、編集したら`rsync -a --delete ~/dotfiles/herdr-app/mods/repo-launcher/ ~/.config/herdr-app/mods/repo-launcher/`で揃える。`spaces-tiles`も同じくコピー。Claude Codeが`mods/<名前>/`の中を編集したときは、`~/.config/herdr-app/mods/<名前>`が実フォルダなら、`~/.claude/settings.json`のPostToolUseフックが同じrsyncを自動で走らせる。手で編集したときは`~/dotfiles/herdr-app/sync.sh`を走らせる（コピーで置いているmodをまとめて揃える）。
 - herdrに同梱のmod（`agents`、`spaces`、`pane`など）は直接編集しない。複製して名前を変え、レイアウトの`content.mod`を複製に向ける。複製には、元になったmodを冒頭のコメントに書く。herdrの更新で元のmodが変わっても複製には反映されないため。
 
 ## 変更の反映と確認
