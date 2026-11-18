@@ -11,6 +11,9 @@ herdrが起動のたびに書き直す`~/.config/herdr-app/AGENTS.md`と`*.d.ts`
 ## 変更の反映と確認
 
 - シンボリックリンクの先のレイアウトのファイルを編集しても、herdrは読み直さない。`herdr-app do layout.switch --name main`で一度ほかのレイアウトに切り替えてから、元のレイアウトに戻す。
+- herdrの起動後に張ったmodのシンボリックリンクは、リンクの先のファイルを編集しても、動いているmodが新しいコードに替わらないことがある（`~/Projects/mine/claude-chat`で確認。起動前からあるリンクとの違いが原因と推測しているが、未確認）。`herdr-app check`が通り、`herdr-app status`にエラーがなくても、古いコードのまま動き続ける。レイアウトを一度切り替えて戻すと、新しいコードで始め直す。新しいコードで動いているか怪しいときは、一時的にファイルへ値を書くコードを入れて確かめる。
+- シンボリックリンクにしたmodのフォルダの中の画像（`svg("mods/<name>/x.svg")`）は表示されないことがある（`claude-chat`で確認）。アイコンは、herdrのhomeの実フォルダ（例：`~/.config/herdr-app/claude-chat-icons/`）に写して、そのパスで指す。`wtr-desk`も同じやり方。
+- `herdr-app shot`は最後に描いた画面を保存するだけ。herdrのウィンドウが後ろにあると描き直されず、古い画面が撮れることがある。撮る前に`osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true'`で、herdrが前にあるか確かめる。
 - `herdr-app check <modのフォルダ>`は最初の描画しか試さない。Spacesの一覧のように後から描く部分で起きる実行時のエラーは見逃す。modを直したら、毎回`herdr-app shot`で撮った画面も見る。エラーは、そのブロックに「This view could not be rendered」と表示される。
 - `herdr-app shot`はアプリの描画だけを撮る。ウィンドウの透過やブラーで後ろに見えるデスクトップは写らないため、透過の確認には使えない。
 - 撮った画面の画素の色を読むときは、PILが入っていなくても、PNGを`zlib`で展開すれば読める（切り出し、拡大、画素の色の取得）。
@@ -25,6 +28,7 @@ herdrが起動のたびに書き直す`~/.config/herdr-app/AGENTS.md`と`*.d.ts`
 ## modの描画（GPUI）の制約
 
 - `div().bg()`は単色しか受け付けない。`gpui-kit.d.ts`には`Background.linear_gradient`があるが、`bg()`に渡すと実行時に「unsupported argument type; expected null, boolean, number, string or function」となる。
+- 行の高さを自分で測る`list`は、`track_scroll`が効かず、コードからスクロールさせられない（`scroll_to_bottom`を呼んでも動かない）。チャットのように一番下へ送りたい一覧は、高さを渡す`v_virtual_list`にし、まだ測っていない行を見えない層（`invisible()`）で描いて`on_size_change`で高さを測ってから、`scroll_to_bottom`を呼ぶ（`checksheet-review`と`claude-chat`のmod）。
 - 影は`shadow_sm`、`shadow_md`、`shadow_lg`などのプリセットだけ。影の大きさや色は自由に決められない。
 - 角丸の半径は、要素の高さの半分までに縮む。高さ1pxの帯に`rounded(8)`を付けても、角はほぼ四角になる。
 - 絵文字は、文字の枠を縦横中央にそろえても、絵が左に約1px、上に約0.5pxずれる（16pxの絵文字で測った）。アイコンの中央に置くときは、絵文字を`div().ml(2).mt(1)`で包んでずらす（`spaces-cards`）。
