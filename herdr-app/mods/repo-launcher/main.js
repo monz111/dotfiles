@@ -452,12 +452,21 @@ export default class RepoLauncher extends View {
       const focusNew = (cx) => {
         const fresh = panes().find((p) => p.terminal && !before.has(p.terminal));
         if (fresh) run("pane.focus", { terminal: fresh.terminal });
-        // Claude Code opens with the claude-chat Chat pane on the left and
-        // its terminal on the right: split the Chat off to the right, then swap.
+        // Claude Code opens as the claude-chat Chat pane with a plain shell on its right: split the
+        // shell off (it starts in the focused terminal's folder), put the Chat between, then park
+        // Claude Code's terminal (it keeps running) so the Chat takes its place.
         if (fresh && action.agent?.key === "claude") {
+          run("pane.split", { pane: fresh.pane, direction: "right" });
           run("pane.split", { pane: fresh.pane, direction: "right", mod: "claude-chat", props: { terminal: fresh.terminal } });
-          run("pane.focus", { terminal: fresh.terminal });
-          run("pane.swap", { direction: "right" });
+          run("terminal.park", { terminal: fresh.terminal });
+          // Chat 60% : shell 40%. layout.resize takes a tab's pane ids too; wait for the new panes to show up.
+          return cx.timer.after(100, () => {
+            const tab = panes().filter((p) => p.tab === fresh.tab);
+            const chat = tab.find((p) => p.mod === "claude-chat"), shell = tab.find((p) => p.terminal && p.terminal !== fresh.terminal);
+            if (chat) run("layout.resize", { id: chat.pane, weight: 0.6 });
+            if (shell) run("layout.resize", { id: shell.pane, weight: 0.4 });
+            this.close();
+          });
         }
         if (fresh || ++tries >= 20) return this.close();
         cx.timer.after(100, focusNew);
