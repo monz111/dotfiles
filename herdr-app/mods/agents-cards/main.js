@@ -154,7 +154,8 @@ export default class Agents extends View {
     // Closing a Chat pane (its ×, or its tab) ends the Claude Code behind it. claude-chat's own close() can't
     // tell a closed pane from Herdr quitting, so this watches: a Chat pane seen this session, now gone, while
     // its terminal still has no pane. Screen gives the terminal a pane before closing the Chat pane.
-    this.seenChats = new Set();
+    // A Chat pane can drop out of panes() for a moment while it's still open, so only gone 3 checks in a row counts.
+    this.seenChats = new Map();  // pane → checks in a row it's been missing
     cx.timer.every(1000, () => this.reapChats());
     // Each agent's last state and when it changed (ms), kept across restarts.
     this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
@@ -182,8 +183,12 @@ export default class Agents extends View {
     for (const t of terminals()) {
       const pane = t.labels?.[CHAT_PANE];
       if (!pane || t.state !== "live" || ps.some((p) => p.terminal === t.address)) continue;
-      if (ps.some((p) => p.pane === pane && p.mod === "claude-chat")) this.seenChats.add(pane);
-      else if (this.seenChats.delete(pane)) run("terminal.kill", { terminal: t.address });
+      if (ps.some((p) => p.pane === pane && p.mod === "claude-chat")) { this.seenChats.set(pane, 0); continue; }
+      if (!this.seenChats.has(pane)) continue;
+      const misses = this.seenChats.get(pane) + 1;
+      if (misses < 3) { this.seenChats.set(pane, misses); continue; }
+      this.seenChats.delete(pane);
+      run("terminal.kill", { terminal: t.address });
     }
   }
 
