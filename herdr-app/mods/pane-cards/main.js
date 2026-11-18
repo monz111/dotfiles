@@ -88,7 +88,7 @@ export default class Pane extends View {
     // A claude-chat Chat pane looks like the Claude Code terminal it shows (parked, so it has no pane).
     // claude-chat labels the terminal with its Chat pane once the pane has had focus; until then it shows as a plain mod.
     const t = terminals().find((x) => x.state === "live" && x.labels?.["claude-chat.pane"] === p.pane);
-    return t ? { ...p, program: t.program, title: t.title, cwd: t.cwd, status: t.status } : p;
+    return t ? { ...p, program: t.program, title: t.title, cwd: t.cwd, status: t.status, chatOf: t.address } : p;
   }
 
   button(t, id, icon, command, args) {
@@ -106,17 +106,33 @@ export default class Pane extends View {
   }
 
   // Claude Code の会話を claude-chat の Chat で出す: 右に Chat のペインを作り、ターミナルはペインから外す
-  // （動いたまま。Chat のフッターの Screen で戻す）。同じ手順が claude-chat の mod/main.js にもある
+  // （動いたまま。Chat のペインのヘッダーの Screen で戻す）。同じ手順が claude-chat の mod/main.js にもある
   chatButton(t, pane, terminal) {
-    return div().id(`ph-c-${pane}`).px(6).h(20).flex().items_center().rounded(4)
+    return this.textButton(t, `ph-c-${pane}`, "Chat", () => {
+      run("pane.split", { pane, direction: "right", mod: "claude-chat", props: { terminal } });
+      run("terminal.park", { terminal });
+    });
+  }
+
+  // Chat のペインをターミナルに戻す：右にターミナルを戻し、出たのを確かめてから Chat のペインを閉じる
+  // （先に閉じるとタブが空になって閉じる）。同じ手順が claude-chat の mod/main.js の toScreen にもある
+  screenButton(t, pane, terminal) {
+    return this.textButton(t, `ph-s-${pane}`, "Screen", (cx) => {
+      run("pane.focus", { pane });
+      run("terminal.keep", { terminal, place: "right" });
+      cx.spawn(async (cx) => {
+        for (let i = 0; i < 30 && !panes().some((p) => p.terminal === terminal); i++) await cx.sleep(100);
+        if (panes().some((p) => p.terminal === terminal)) run("pane.close", { pane });
+      });
+    });
+  }
+
+  textButton(t, id, label, onClick) {
+    return div().id(id).px(6).h(20).flex().items_center().rounded(4)
       .text_size(11).font_semibold().text_color(t.dim)
       .hover((s) => s.bg(t.hover).text_color(t.foreground))
-      .on_click((_e, cx) => {
-        cx.stop_propagation();
-        run("pane.split", { pane, direction: "right", mod: "claude-chat", props: { terminal } });
-        run("terminal.park", { terminal });
-      })
-      .child("Chat");
+      .on_click((_e, cx) => { cx.stop_propagation(); onClick(cx); })
+      .child(label);
   }
 
   render(cx) {
@@ -150,6 +166,7 @@ export default class Pane extends View {
       .when(st === "blocked", el => el.child(h_flex().flex_none().relative().h(16).px(6).rounded(7).items_center().children(pill(NEEDS, 16, 7)).child(div().text_size(10).font_semibold().text_color("#ffffff").child("Needs You"))))
       .when(st === "done", el => el.child(div().size(7).flex_none().rounded(4).bg(t.done)))
       .when(this.hovered && p.app === "claude-code" && Boolean(p.terminal), el => el.child(this.chatButton(t, pane, p.terminal)))
+      .when(this.hovered && Boolean(p.chatOf), el => el.child(this.screenButton(t, pane, p.chatOf)))
       .when(this.hovered, el => el
         .child(this.button(t, `ph-r-${pane}`, "split-right", "pane.split", { direction: "right", pane }))
         .child(this.button(t, `ph-d-${pane}`, "split-down", "pane.split", { direction: "down", pane }))
