@@ -60,7 +60,7 @@ const pill = (base, size, r) => {
 };
 
 import { v_flex, h_flex } from "gpui-base";
-import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout } from "herdr";
+import { agents, terminals, panes, focused, spaces, run, theme, shared, setShared, setAgentOrder, openOverlay, closeOverlay, props, window, layout, nextCommand } from "herdr";
 // Display only: the first letter upper-cased, the stored name unchanged.
 const cap = (s) => (s ? s[0].toUpperCase() + s.slice(1) : s);
 
@@ -162,6 +162,18 @@ export default class Agents extends View {
     if (!this.pendingPins.length) localStorage.removeItem("pins");
     this.migratingPins = new Set();
     cx.timer.every(30000, (cx) => cx.notify());
+    // keys.json's "agents-cards.next|prev". Herdr's agent.next/prev skip Chat panes (their terminal is parked,
+    // so it's not in agents()), so this walks the list as shown and focuses each row's pane like a click does.
+    cx.spawn(async () => { for (;;) this.step(String(await nextCommand())); });
+  }
+
+  step(c) {
+    const d = { next: 1, prev: -1 }[c], list = this.order ?? [];
+    if (!d || !list.length) return;
+    const f = focused();
+    const i = list.findIndex((a) => f?.pane ? a.pane === f.pane : a.address === (f?.agent ?? f?.terminal));
+    const a = list[i < 0 ? (d > 0 ? 0 : list.length - 1) : (i + d + list.length) % list.length];
+    run("pane.focus", { pane: a.pane });
   }
 
   reapChats() {
@@ -332,6 +344,7 @@ export default class Agents extends View {
     const rest = list.filter((a) => !a.pinned);
     list = [...pinned, ...rest];
     setAgentOrder(list.map((a) => a.address));
+    this.order = list;
 
     const withKids = (a, i) => {
       const subs = collapsed ? [] : this.tree(all, a.address);
