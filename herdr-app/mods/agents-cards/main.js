@@ -114,7 +114,7 @@ function chatAgents(all, ps) {
     const sp = spaces().find((s) => s.tabs.some((x) => x.id === p.tab));
     const tab = sp?.tabs.find((x) => x.id === p.tab);
     return { address: t.address, pane: p.pane, space: sp?.id, space_name: sp?.name ?? "", tab: p.tab, tab_index: tab?.index, tab_name: tab?.name ?? "",
-      status: t.status, app: "claude-code", program: t.program, title: t.title, seq: 0, pinned: Boolean(t.labels?.["herdr.pinned"]), focused: p.focused };
+      status: t.status, app: "claude-code", program: t.program, title: t.title, seq: 0, pinned: Boolean(t.labels?.["herdr.pinned"]), focused: p.focused, chat: true };
   });
 }
 const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
@@ -384,8 +384,10 @@ export default class Agents extends View {
     // otherwise read the same.
     // Read the pane snapshot once: every host read copies the whole list into JS.
     const leads = leadPanes(panes());
-    const tabLabels = new Map(spaces().flatMap(s => s.tabs).map(tab => [tab.id, title(tab, leads.get(tab.id))]));
-    const labels = new Map(list.map(a => [a.address, tabLabels.get(a.tab) ?? (a.title || a.program?.name || "")]));
+    const tabs = new Map(spaces().flatMap(s => s.tabs).map(tab => [tab.id, tab]));
+    const tabLabels = new Map([...tabs].map(([id, tab]) => [id, title(tab, leads.get(id))]));
+    // A Chat pane's terminal has no pane, so it can't be its tab's lead: it reads its own title instead.
+    const labels = new Map(list.map(a => [a.address, (a.chat && tabs.has(a.tab) ? title(tabs.get(a.tab), a) : tabLabels.get(a.tab)) ?? (a.title || a.program?.name || "")]));
     const label = (a) => labels.get(a.address);
     const detail = new Map(list.map(a => [a.address, /^\d+$/.test(label(a)) ? null : label(a)]));
     const seen = {};
