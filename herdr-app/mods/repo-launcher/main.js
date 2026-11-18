@@ -543,10 +543,6 @@ export default class RepoLauncher extends View {
     if (this.view === "actions") {
       // Typing in the emoji field: Enter or Esc gives the keys back to the choices.
       if (this.emojiTyping) {
-        if (ctrl && k === "i") {
-          cx.stop_propagation();
-          return this.toggleIcons(cx);
-        }
         if (k === "enter" || k === "escape") {
           cx.stop_propagation();
           this.emojiTyping = false;
@@ -571,9 +567,6 @@ export default class RepoLauncher extends View {
         toggleFavorite(this.repo.path);
       } else if (ctrl && k === "e") {
         updateSettings((s) => ({ reuse: !s.reuse }));
-      } else if (ctrl && k === "i") {
-        cx.stop_propagation();
-        return this.toggleIcons(cx);
       } else return;
       cx.stop_propagation();
       cx.notify();
@@ -878,7 +871,6 @@ export default class RepoLauncher extends View {
       .child(hint(t, ["↵"], "open"))
       .child(hint(t, ["1–9"], "pick"))
       .child(hint(t, [prettyKeys("ctrl-e")], "reuse"))
-      .child(hint(t, [prettyKeys("ctrl-i")], "icons"))
       .child(div().flex_1())
       .child(hint(t, ["⌫"], "back"))
       .child(hint(t, ["Esc"], "close"));
@@ -916,7 +908,7 @@ export default class RepoLauncher extends View {
       .child(h_flex().w(84).h(26).px(8).flex_none().items_center().rounded(6).bg(t.background).border_1().border_color(t.border)
         .child(Input.new(this.emojiInput).flex_1().h_full().text_size(13).text_color(t.foreground)))
       .child(iconButton(t, "rl-tile-icons", "tiles/layout-grid", (cx) => this.toggleIcons(cx),
-        { tooltip: `${this.iconsOpen ? "Hide" : "Browse"} icons (${prettyKeys("ctrl-i")})`, active: this.iconsOpen, size: 26 }))
+        { tooltip: `${this.iconsOpen ? "Hide" : "Browse"} icons`, active: this.iconsOpen, size: 26 }))
       .when(Boolean(emoji), (e) => e.child(iconButton(t, "rl-tile-letter", "tiles/type", (cx) => this.showLetter(cx),
         { tooltip: "Show the first letter again", size: 26 })))
       .child(div().flex_1())
