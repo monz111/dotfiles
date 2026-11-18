@@ -104,6 +104,19 @@ function title(tab, l) {
   const telling = live && live !== prog && !/^[~/]|^[A-Za-z]:\\/.test(live) && !live.includes("@") && live.toLowerCase() !== l?.program?.key;
   return (tab.name === prog || !tab.named) && telling ? live : tab.name;
 }
+// claude-chat's Chat pane shows a Claude Code terminal it took out of its pane (terminal.park), so the
+// terminal has no tab and isn't in agents(). claude-chat labels it with its Chat pane; list it as that pane.
+const CHAT_PANE = "claude-chat.pane";
+function chatAgents(all, ps) {
+  const chats = new Map(ps.filter((p) => p.mod === "claude-chat").map((p) => [p.pane, p]));
+  return all.filter((t) => t.state === "live" && chats.has(t.labels?.[CHAT_PANE]) && !ps.some((p) => p.terminal === t.address)).map((t) => {
+    const p = chats.get(t.labels[CHAT_PANE]);
+    const sp = spaces().find((s) => s.tabs.some((x) => x.id === p.tab));
+    const tab = sp?.tabs.find((x) => x.id === p.tab);
+    return { address: t.address, pane: p.pane, space: sp?.id, space_name: sp?.name ?? "", tab: p.tab, tab_index: tab?.index, tab_name: tab?.name ?? "",
+      status: t.status, app: "claude-code", program: t.program, title: t.title, seq: 0, pinned: Boolean(t.labels?.["herdr.pinned"]), focused: p.focused };
+  });
+}
 const RANK = { blocked: 4, done: 3, working: 2, idle: 1 };
 // A sub-agent without a pane isn't in agents(): its raw word, error counting as
 // blocked. It's never done: it reports to its parent, and the parent's done is the news.
@@ -138,12 +151,28 @@ export default class Agents extends View {
   init(_props, cx) {
     if (props()?.sortMenu) return;
     this.folded = new Set();
+    // Closing a Chat pane (its ×, or its tab) ends the Claude Code behind it. claude-chat's own close() can't
+    // tell a closed pane from Herdr quitting, so this watches: a Chat pane seen this session, now gone, while
+    // its terminal still has no pane. Screen gives the terminal a pane before closing the Chat pane.
+    this.seenChats = new Set();
+    cx.timer.every(1000, () => this.reapChats());
     // Each agent's last state and when it changed (ms), kept across restarts.
     this.changed = JSON.parse(localStorage.getItem("changed") ?? "{}");
     this.pendingPins = JSON.parse(localStorage.getItem("pins") ?? "[]");
     if (!this.pendingPins.length) localStorage.removeItem("pins");
     this.migratingPins = new Set();
     cx.timer.every(30000, (cx) => cx.notify());
+  }
+
+  reapChats() {
+    const ps = panes();
+    if (!ps.length) return;
+    for (const t of terminals()) {
+      const pane = t.labels?.[CHAT_PANE];
+      if (!pane || t.state !== "live" || ps.some((p) => p.terminal === t.address)) continue;
+      if (ps.some((p) => p.pane === pane && p.mod === "claude-chat")) this.seenChats.add(pane);
+      else if (this.seenChats.delete(pane)) run("terminal.kill", { terminal: t.address });
+    }
   }
 
   // Stamps agents whose state changed. Done and idle count as one: looking at a
@@ -285,9 +314,11 @@ export default class Agents extends View {
     if (props()?.sortMenu) return this.sortMenu(t);
     const collapsed = narrow();
     const sort = sortOf();
-    let list = agents();
-    this.listed = new Map(list.map((a) => [a.address, a.status]));
     const all = terminals();
+    // Chat agents go in with their space (grouped view expects a space's agents next to each other).
+    const order = spaces().map((s) => s.id);
+    let list = [...agents(), ...chatAgents(all, panes())].sort((x, y) => order.indexOf(x.space) - order.indexOf(y.space));
+    this.listed = new Map(list.map((a) => [a.address, a.status]));
     this.migratePins(all);
     const shown = focused()?.agent;
     const now = Date.now();

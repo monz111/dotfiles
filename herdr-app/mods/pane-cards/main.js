@@ -62,7 +62,7 @@ const pill = (base, size, r) => {
 };
 
 import { h_flex } from "gpui-base";
-import { panes, props, run, theme, home, spaces, shared } from "herdr";
+import { panes, props, run, theme, home, spaces, shared, terminals } from "herdr";
 
 // Fallback when spaces-cards hasn't published a tile color: same palette and hash as agents-cards.
 const TILES = ["#3b82f6", "#22c55e", "#f97316", "#a855f7", "#14b8a6", "#ec4899", "#eab308"];
@@ -83,7 +83,12 @@ export default class Pane extends View {
   init() { this.hovered = false; }
 
   me() {
-    return panes().find((p) => p.pane === props()?.pane);
+    const p = panes().find((p) => p.pane === props()?.pane);
+    if (p?.mod !== "claude-chat") return p;
+    // A claude-chat Chat pane looks like the Claude Code terminal it shows (parked, so it has no pane).
+    // claude-chat labels the terminal with its Chat pane once the pane has had focus; until then it shows as a plain mod.
+    const t = terminals().find((x) => x.state === "live" && x.labels?.["claude-chat.pane"] === p.pane);
+    return t ? { ...p, program: t.program, title: t.title, cwd: t.cwd, status: t.status } : p;
   }
 
   button(t, id, icon, command, args) {
@@ -98,6 +103,20 @@ export default class Pane extends View {
         run(command, args);
       })
       .child(svg(`mods/pane/${icon}.svg`).size(14));
+  }
+
+  // Claude Code の会話を claude-chat の Chat で出す: 右に Chat のペインを作り、ターミナルはペインから外す
+  // （動いたまま。Chat のフッターの Screen で戻す）。同じ手順が claude-chat の mod/main.js にもある
+  chatButton(t, pane, terminal) {
+    return div().id(`ph-c-${pane}`).px(6).h(20).flex().items_center().rounded(4)
+      .text_size(11).font_semibold().text_color(t.dim)
+      .hover((s) => s.bg(t.hover).text_color(t.foreground))
+      .on_click((_e, cx) => {
+        cx.stop_propagation();
+        run("pane.split", { pane, direction: "right", mod: "claude-chat", props: { terminal } });
+        run("terminal.park", { terminal });
+      })
+      .child("Chat");
   }
 
   render(cx) {
@@ -130,6 +149,7 @@ export default class Pane extends View {
       .when(st === "working", el => el.child(svg("mods/workspace-chrome/spinner.svg").size(12).flex_none().text_color(t.working).spin(900)))
       .when(st === "blocked", el => el.child(h_flex().flex_none().relative().h(16).px(6).rounded(7).items_center().children(pill(NEEDS, 16, 7)).child(div().text_size(10).font_semibold().text_color("#ffffff").child("Needs You"))))
       .when(st === "done", el => el.child(div().size(7).flex_none().rounded(4).bg(t.done)))
+      .when(this.hovered && p.app === "claude-code" && Boolean(p.terminal), el => el.child(this.chatButton(t, pane, p.terminal)))
       .when(this.hovered, el => el
         .child(this.button(t, `ph-r-${pane}`, "split-right", "pane.split", { direction: "right", pane }))
         .child(this.button(t, `ph-d-${pane}`, "split-down", "pane.split", { direction: "down", pane }))
