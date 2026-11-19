@@ -431,7 +431,7 @@ export default class RepoLauncher extends View {
     cx.spawn(async (cx) => {
       let argv = null;
       try {
-        argv = action.agent ? await agentArgv(action.agent, action.extra, action.account) : null;
+        argv = action.agent ? await agentArgv(action.agent, action.extra, action.account, repo.path) : null;
       } catch (e) {
         this.launching = false;
         notify({ title: "Could not start the agent", body: String(e?.message ?? e), level: "error" });

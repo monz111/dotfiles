@@ -1,7 +1,8 @@
 // Opens a terminal or an agent for a repository: in the repository's open
 // space, or in a new space.
 
-import { spaces, panes, run } from "herdr";
+import { spaces, panes, run, home } from "herdr";
+import * as fs from "fs/promises";
 import { ACCOUNT_AGENTS, isInside, isWindows, powershell } from "./scan.js";
 
 /**
@@ -44,8 +45,17 @@ const psQuote = (s) => `'${String(s).replace(/'/g, "''")}'`;
  * `env NAME=dir agent ...` on macOS and Linux, and a PowerShell that sets
  * `$env:NAME` on Windows.
  */
-export async function agentArgv(agent, extraArgs, account) {
-  const argv = [...(agent.run ?? [agent.key]), ...splitArgs(extraArgs)];
+export async function agentArgv(agent, extraArgs, account, folder) {
+  let args = splitArgs(extraArgs);
+  // Claude Code's --continue quits when the folder has no conversation yet ("No conversation
+  // found to continue"), so it is dropped there. Conversations are kept in
+  // <account>/projects/<folder with every non-alphanumeric as "-">/*.jsonl.
+  if (agent.key === "claude" && folder && args.some((a) => a === "--continue" || a === "-c")) {
+    const dir = `${account?.dir ?? `${home()}/.claude`}/projects/${folder.replace(/[^A-Za-z0-9]/g, "-")}`;
+    const names = await fs.readdir(dir).catch(() => []);
+    if (!names.some((n) => n.endsWith(".jsonl"))) args = args.filter((a) => a !== "--continue" && a !== "-c");
+  }
+  const argv = [...(agent.run ?? [agent.key]), ...args];
   const spec = ACCOUNT_AGENTS[agent.key];
   if (!account || account.isDefault || !spec) return argv;
   if (isWindows()) {
