@@ -1,21 +1,29 @@
 // cmd-w (keys.json "mod.open:close-guard") の代わりの pane.close。
 // フォーカス中のペインが Claude Code なら、確認してから閉じる。それ以外はすぐ閉じる。
+// claude-chat の Chat のペインも対象（閉じると agents-cards が裏の Claude Code を終わらせるため）。
 // pane.close には確認のオプションがないため、mod を挟む。
 
 import { View, div, svg, image } from "gpui-kit";
 import { v_flex, h_flex } from "gpui-base";
-import { run, props, closeOverlay, focused, panes, theme } from "herdr";
+import { run, props, closeOverlay, focused, panes, terminals, theme } from "herdr";
 
 const tint = (color, alpha) => (/^#[0-9a-f]{6}$/i.test(color || "") ? color + alpha : color);
 const HOME = /^\/Users\/[^/]+/;
+
+// Chat のペインは mod のペインで app などを持たないので、ラベルで結びついた Claude Code のターミナルの情報で補う（pane-cards の me() と同じ）
+const asClaude = (p) => {
+  if (p?.mod !== "claude-chat") return p?.app === "claude-code" ? p : null;
+  const t = terminals().find((x) => x.state === "live" && x.labels?.["claude-chat.pane"] === p.pane);
+  return t ? { ...p, program: t.program, title: t.title, cwd: t.cwd, status: t.status } : p;
+};
 
 export default class CloseGuard extends View {
   init(_props, cx) {
     const id = props()?.overlay;
     if (!id) return; // mod.open 以外（herdr-app check など）で読み込まれたときは何もしない
     const pane = focused()?.pane;
-    this.info = pane && panes().find((p) => p.pane === pane);
-    if (this.info?.app !== "claude-code") {
+    this.info = asClaude(pane && panes().find((p) => p.pane === pane));
+    if (!this.info) {
       closeOverlay(id);
       return run("pane.close", pane ? { pane } : {}); // pane がないのはレイアウトのターミナルブロックなど。もとの cmd-w と同じ動き
     }
