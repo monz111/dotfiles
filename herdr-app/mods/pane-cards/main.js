@@ -151,7 +151,8 @@ export default class Pane extends View {
       .px(12)
       .gap(10)
       .items_center()
-      .bg(t.surface)
+      // 透けるレイアウト（背景が #rrggbbaa）では塗らない。半透明の色は重ねると濃さが足されて、ペインの枠の上に塗ると不透明になる
+      .when(!/^#[0-9a-f]{8}$/i.test(t.background || ""), (e) => e.bg(t.surface))
       .border_b(1)
       .border_color(t.border)
       .text_size(12)
