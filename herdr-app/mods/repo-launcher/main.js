@@ -11,7 +11,7 @@
 
 import { View, div, svg } from "gpui-kit";
 import { v_flex, h_flex, InputState, Input, SliderState, Slider, SliderTrack, SliderIndicator, SliderThumb } from "gpui-base";
-import { exec, theme, props, closeOverlay, knownAgents, pickFolder, notify, panes, run, settings as appSettings, shared } from "herdr";
+import { exec, theme, props, closeOverlay, knownAgents, pickFolder, notify, panes, run, settings as appSettings, shared, home } from "herdr";
 import { matchRepo } from "./fuzzy.js";
 import { findRepos, detectAccounts, accountEmail, displayPath, normalize, pathKey, isWindows, powershell, ACCOUNT_AGENTS } from "./scan.js";
 import { agentArgv, open, spacesFor } from "./launch.js";
@@ -91,6 +91,14 @@ export default class RepoLauncher extends View {
     this.accounts = memory.accounts ?? [];
     this.argInputs = {};
     this.ensureArgInputs();
+    // The system's folder picker hides folders that start with "."; this field takes a typed path instead.
+    this.rootInput = InputState.new({ placeholder: "Or type a path, e.g. ~/.config, and press Enter" });
+    this.rootInput.on("submit", (_e, cx) => {
+      const typed = this.rootInput.value().trim();
+      if (!typed) return;
+      this.addPath(typed.replace(/^~(?=\/|$)/, home()), cx);
+      this.rootInput.set_value("");
+    });
     if (!savedAgents) this.refreshAgents(cx);
     if (isWindows()) cx.spawn(async () => { await powershell(); });
     cx.spawn(async (cx) => {
@@ -155,16 +163,19 @@ export default class RepoLauncher extends View {
   addRoot(cx) {
     cx.spawn(async (cx) => {
       const dir = await pickFolder({ prompt: "Add folder" }).catch(() => null);
-      if (!dir) return;
-      const path = normalize(dir);
-      const roots = settings().roots;
-      if (!roots.some((r) => pathKey(r) === pathKey(path))) {
-        updateSettings({ roots: [...roots, path] });
-        memory.scanningSince = 0;
-        this.scan(cx, { quiet: false });
-      }
-      cx.notify();
+      if (dir) this.addPath(dir, cx);
     });
+  }
+
+  addPath(dir, cx) {
+    const path = normalize(dir);
+    const roots = settings().roots;
+    if (!roots.some((r) => pathKey(r) === pathKey(path))) {
+      updateSettings({ roots: [...roots, path] });
+      memory.scanningSince = 0;
+      this.scan(cx, { quiet: false });
+    }
+    cx.notify();
   }
 
   removeRoot(root, cx) {
@@ -1039,7 +1050,9 @@ export default class RepoLauncher extends View {
         .child(button(t, "rl-add-root", "Add folder…", (cx) => this.addRoot(cx), { primary: true, symbol: "folder-plus" }))
         .child(button(t, "rl-refresh-all", scanning ? "Scanning…" : "Refresh", (cx) => { memory.scanningSince = 0; this.scan(cx, { quiet: false }); }, { symbol: "refresh" }))
         .child(div().flex_1())
-        .child(div().text_size(11).text_color(t.dim).child(c.scannedAt ? `Scanned ${ago(c.scannedAt)}` : "")));
+        .child(div().text_size(11).text_color(t.dim).child(c.scannedAt ? `Scanned ${ago(c.scannedAt)}` : "")))
+      .child(h_flex().h(32).px(10).items_center().rounded(8).bg(t.raised).border_1().border_color(t.border)
+        .child(Input.new(this.rootInput).flex_1().h_full().text_size(12).font_family(appSettings().font_family ?? "JetBrains Mono")));
 
     // Reuse.
     const reuse = v_flex().gap(10)
